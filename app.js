@@ -356,9 +356,9 @@ async function renderResumen() {
           <div class="rk-pos" style="font-weight:900;font-size:15px;min-width:30px">${medals[i] || (i+1)}</div>
           <div class="rk-av">${inicialesDisplay(u.n)}</div>
           <div class="rk-name">${nombreDisplay(u.n, true)}</div>
-          <div class="rk-picks">${u.picks} pron.</div>
+          <div class="rk-picks" style="font-size:12px;color:var(--text2)">${u.picks} pron.</div>
           <div class="rk-bar"><div class="rk-bar-fill" style="width:${barWidth}%"></div></div>
-          <div class="rk-pts" style="font-size:14px;font-weight:800;min-width:70px;text-align:right">${hayRes ? u.pts + ' pts' : '—'}</div>
+          <div class="rk-pts" style="font-size:16px;font-weight:900;min-width:70px;text-align:right;color:var(--gold)">${hayRes ? u.pts + ' pts' : '—'}</div>
         </div>`;
     });
     if (sc.length > 50) {
