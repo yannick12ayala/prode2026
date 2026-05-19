@@ -251,11 +251,11 @@ async function mostrarRankingEmp(btnEl) {
 
   const miPos = sc.findIndex(u => u.n === cUser);
 
-  let html = `<div class="ranking-escape-wrap">
+  let html = `<div class="ranking-header-wrap">
+    <div class="semana-header"><span class="semana-badge">🏆</span> Ranking General</div>
+    <div class="semana-meta">${users.length} participantes · ${hayRes ? 'Puntos actualizados' : 'Resultados pendientes — puntos en 0'}</div>
     <img src="hero-pixar.png" alt="" class="ranking-escape-img" crossorigin="anonymous" onload="quitarFondoBlanco(this)"/>
-  </div>
-  <div class="semana-header"><span class="semana-badge">🏆</span> Ranking General</div>
-    <div class="semana-meta">${users.length} participantes · ${hayRes ? 'Puntos actualizados' : 'Resultados pendientes — puntos en 0'}</div>`;
+  </div>`;
 
   // Card de tu posición
   if (miPos >= 0) {
