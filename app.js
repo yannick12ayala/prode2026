@@ -587,7 +587,7 @@ async function renderPicksAdm() {
 }
 
 async function renderResAdmin() {
-  if (!Object.keys(lRes).length) lRes = await dbLoadResults();
+  lRes = await dbLoadResults();
 
   let h = '<div style="display:grid;gap:2rem">';
   const colors = ['#1a3a8a', '#c4161c', '#00a651', '#f26522', '#4fa3e0', '#6d2077'];
@@ -622,9 +622,9 @@ async function renderResAdmin() {
             <div style="font-size:13px;font-weight:600;color:var(--text)">${p.loc}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-direction:column">
-            <input type="number" min="0" max="20" placeholder="–" value="${vL}" onchange="setResGol('${p.id}','l',this.value)" style="width:50px;height:50px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--border2);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:0;outline:none;transition:all .2s" onfocus="this.style.borderColor='var(--fifa-sky)';this.style.boxShadow='0 0 0 3px rgba(79,163,224,.2)'"/>
+            <input type="number" min="0" max="20" placeholder="–" value="${vL}" oninput="setResGol('${p.id}','l',this.value)" onchange="setResGol('${p.id}','l',this.value)" style="width:50px;height:50px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--border2);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:0;outline:none;transition:all .2s" onfocus="this.style.borderColor='var(--fifa-sky)';this.style.boxShadow='0 0 0 3px rgba(79,163,224,.2)'"/>
             <span style="font-size:14px;color:var(--text3);font-weight:700">:</span>
-            <input type="number" min="0" max="20" placeholder="–" value="${vV}" onchange="setResGol('${p.id}','v',this.value)" style="width:50px;height:50px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--border2);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:0;outline:none;transition:all .2s" onfocus="this.style.borderColor='var(--fifa-sky)';this.style.boxShadow='0 0 0 3px rgba(79,163,224,.2)'"/>
+            <input type="number" min="0" max="20" placeholder="–" value="${vV}" oninput="setResGol('${p.id}','v',this.value)" onchange="setResGol('${p.id}','v',this.value)" style="width:50px;height:50px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--border2);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:0;outline:none;transition:all .2s" onfocus="this.style.borderColor='var(--fifa-sky)';this.style.boxShadow='0 0 0 3px rgba(79,163,224,.2)'"/>
           </div>
           <div style="text-align:left">
             <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Visitante</div>
