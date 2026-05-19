@@ -244,31 +244,30 @@ async function mostrarRankingEmp(btnEl) {
 
   const miPos = sc.findIndex(u => u.n === cUser);
 
-  let html = `<div class="semana-header"><span class="semana-badge">🏆</span> Ranking General — Top 50</div>
+  let html = `<div class="semana-header"><span class="semana-badge">🏆</span> Ranking General</div>
     <div class="semana-meta">${users.length} participantes · ${hayRes ? 'Puntos actualizados' : 'Resultados pendientes — puntos en 0'}</div>`;
 
+  // Card de tu posición
   if (miPos >= 0) {
     const yo = sc[miPos];
     html += `<div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:1.25rem;display:flex;align-items:center;gap:14px">
-      <div style="font-size:28px;font-weight:900;color:var(--gold);min-width:48px;text-align:center">${miPos + 1}°</div>
+      <div style="font-size:30px;font-weight:900;color:var(--gold);min-width:52px;text-align:center">${miPos + 1}°</div>
       <div style="flex:1">
-        <div style="font-size:15px;font-weight:700;color:var(--text)">${nombreDisplay(cUser, false)}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">${yo.picks} pronósticos cargados</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:2px">Tu posición</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${nombreDisplay(cUser, false)}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:28px;font-weight:900;color:var(--gold);line-height:1">${yo.pts}</div>
+        <div style="font-size:30px;font-weight:900;color:var(--gold);line-height:1">${yo.pts}</div>
         <div style="font-size:11px;color:var(--text3)">puntos</div>
       </div>
     </div>`;
   }
 
+  // Tabla Top 50 — solo nombre y puntos
   html += `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden">
-    <div style="display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)">
-      <div style="width:28px"></div>
-      <div style="width:28px;margin-left:10px"></div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-left:12px">Participante</div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);width:60px;text-align:right;margin-right:12px">Pron.</div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);min-width:60px;text-align:right">Pts</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Participante</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold)">Puntos</div>
     </div>`;
 
   if (!sc.length) {
@@ -277,21 +276,21 @@ async function mostrarRankingEmp(btnEl) {
     sc.slice(0, 50).forEach((u, i) => {
       const esYo = u.n === cUser;
       const ptColor = u.pts > 0 ? 'var(--gold)' : 'var(--text3)';
-      html += `<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;${esYo ? 'background:rgba(201,168,76,.08)' : i < 3 ? 'background:rgba(201,168,76,.03)' : ''}" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='${esYo ? 'rgba(201,168,76,.08)' : i < 3 ? 'rgba(201,168,76,.03)' : 'transparent'}'">
-        <div style="width:28px;text-align:center;font-size:${i < 3 ? '16px' : '12px'};font-weight:700;color:var(--text3);flex-shrink:0">${medals[i] || (i+1)}</div>
-        <div style="width:28px;height:28px;border-radius:50%;background:${esYo ? 'rgba(201,168,76,.25)' : 'var(--accent-bg)'};color:${esYo ? 'var(--gold)' : 'var(--accent)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${inicialesDisplay(u.n)}</div>
-        <div style="flex:1;min-width:0;padding-left:8px">
-          <div style="font-size:13px;font-weight:${esYo ? '700' : '500'};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nombreDisplay(u.n, false)}${esYo ? ' <span style="font-size:10px;color:var(--gold);font-weight:600">(vos)</span>' : ''}</div>
+      const rowBg = esYo ? 'rgba(201,168,76,.08)' : i < 3 ? 'rgba(201,168,76,.03)' : 'transparent';
+      html += `<div style="display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.04);background:${rowBg};transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='${rowBg}'">
+        <div style="width:30px;text-align:center;font-size:${i < 3 ? '18px' : '12px'};font-weight:700;color:var(--text2);flex-shrink:0">${medals[i] || (i + 1)}</div>
+        <div style="width:30px;height:30px;border-radius:50%;background:${esYo ? 'rgba(201,168,76,.25)' : 'var(--accent-bg)'};color:${esYo ? 'var(--gold)' : 'var(--accent)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${inicialesDisplay(u.n)}</div>
+        <div style="flex:1;font-size:14px;font-weight:${esYo ? '700' : '500'};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${nombreDisplay(u.n, false)}${esYo ? ' <span style="font-size:11px;color:var(--gold)">(vos)</span>' : ''}
         </div>
-        <div style="width:60px;text-align:right;font-size:11px;color:var(--text3);margin-right:12px;flex-shrink:0">${u.picks}</div>
-        <div style="min-width:60px;text-align:right;flex-shrink:0">
-          <span style="font-size:${i < 3 ? '18px' : '15px'};font-weight:900;color:${ptColor}">${u.pts}</span>
-          <span style="font-size:10px;color:var(--text3);margin-left:2px">pts</span>
+        <div style="text-align:right;flex-shrink:0">
+          <span style="font-size:${i < 3 ? '20px' : '16px'};font-weight:900;color:${ptColor}">${u.pts}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:3px">pts</span>
         </div>
       </div>`;
     });
     if (sc.length > 50) {
-      html += `<p style="text-align:center;color:var(--text3);font-size:12px;padding:10px 0">Mostrando 50 de ${sc.length} participantes</p>`;
+      html += `<p style="text-align:center;color:var(--text3);font-size:12px;padding:12px">Mostrando 50 de ${sc.length} participantes</p>`;
     }
   }
   html += '</div>';
