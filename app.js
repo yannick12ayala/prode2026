@@ -337,39 +337,50 @@ async function renderResumen() {
   const mx = sc.length ? Math.max(...sc.map(s => hayRes ? s.pts : s.picks), 1) : 1;
   const medals = ['🥇','🥈','🥉'];
 
+  const medals = ['🥇','🥈','🥉'];
+
   let top50Html = `
-    <div style="margin-top:2rem">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
-        <div style="font-size:20px">🏆</div>
-        <h3 style="font-size:16px;font-weight:700;color:var(--text);margin:0">Top 50 - ${hayRes ? 'Por puntos' : 'Por pronósticos cargados'}</h3>
-      </div>
-      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;max-height:600px;overflow-y:auto">
-  `;
+    <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-top:1.5rem">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">🏆</span>
+          <span style="font-size:15px;font-weight:700;color:var(--text)">Top 50 Participantes</span>
+        </div>
+        <span style="font-size:12px;color:var(--text3)">${hayRes ? 'Ordenado por puntos' : 'Sin resultados aún — ordenado por pronósticos'}</span>
+      </div>`;
 
   if (!sc.length) {
-    top50Html += '<p style="font-size:12px;color:#6b6a65;padding:1rem 0">Sin participantes aún</p>';
+    top50Html += '<p style="font-size:13px;color:var(--text3);padding:1.5rem;text-align:center">Sin participantes aún</p>';
   } else {
     sc.slice(0, 50).forEach((u, i) => {
       const barWidth = Math.round((hayRes ? u.pts : u.picks) / mx * 100);
+      const isTop3 = i < 3;
       top50Html += `
-        <div class="rk-row" style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
-          <div class="rk-pos" style="font-weight:900;font-size:15px;min-width:30px">${medals[i] || (i+1)}</div>
-          <div class="rk-av">${inicialesDisplay(u.n)}</div>
-          <div class="rk-name">${nombreDisplay(u.n, true)}</div>
-          <div class="rk-picks" style="font-size:12px;color:var(--text2)">${u.picks} pron.</div>
-          <div class="rk-bar"><div class="rk-bar-fill" style="width:${barWidth}%"></div></div>
-          <div class="rk-pts" style="font-size:16px;font-weight:900;min-width:70px;text-align:right;color:var(--gold)">${hayRes ? u.pts + ' pts' : '—'}</div>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;${isTop3 ? 'background:rgba(201,168,76,.04)' : ''}" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background='${isTop3 ? 'rgba(201,168,76,.04)' : 'transparent'}'">
+          <div style="width:32px;text-align:center;font-size:${isTop3 ? '20px' : '13px'};font-weight:700;color:var(--text3);flex-shrink:0">${medals[i] || (i+1)}</div>
+          <div style="width:34px;height:34px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${inicialesDisplay(u.n)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nombreDisplay(u.n, true)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${u.picks} pronósticos cargados</div>
+          </div>
+          <div style="flex:0 0 120px">
+            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden">
+              <div style="height:100%;border-radius:99px;width:${barWidth}%;background:linear-gradient(90deg,var(--fifa-blue),var(--fifa-sky),var(--fifa-green))"></div>
+            </div>
+          </div>
+          <div style="min-width:80px;text-align:right;flex-shrink:0">
+            <div style="font-size:${isTop3 ? '20px' : '16px'};font-weight:900;color:${hayRes ? 'var(--gold)' : 'var(--text3)'}">${hayRes ? u.pts : '—'}</div>
+            ${hayRes ? `<div style="font-size:10px;color:var(--text3);margin-top:1px">puntos</div>` : ''}
+          </div>
         </div>`;
     });
     if (sc.length > 50) {
-      top50Html += `<p style="font-size:11px;color:var(--text3);padding:10px 0;text-align:center">Mostrando 50 de ${sc.length} participantes</p>`;
+      top50Html += `<p style="font-size:11px;color:var(--text3);padding:12px 20px;text-align:center">Mostrando 50 de ${sc.length} participantes</p>`;
     }
   }
 
-  top50Html += `</div></div>`;
+  top50Html += `</div>`;
   document.getElementById('aTop5').innerHTML = top50Html;
-
-  renderChart();
 }
 
 function renderChart() {
