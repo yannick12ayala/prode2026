@@ -220,6 +220,13 @@ function cambiarSemana(id) {
 
 // ── RANKING EMPLEADO (Top 50) ──
 async function mostrarRankingEmp(btnEl) {
+  // Toggle: si el ranking ya está visible, volver a pronósticos
+  if (semanaVista === null) {
+    semanaVista = semanaActual();
+    renderEmpleado();
+    return;
+  }
+
   // Desactivar todos los nav-btn y activar este
   document.querySelectorAll('#empNav .nav-btn').forEach(b => b.classList.remove('active'));
   if (btnEl) btnEl.classList.add('active');
