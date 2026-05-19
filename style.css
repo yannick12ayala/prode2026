@@ -54,7 +54,7 @@ button { cursor:pointer; }
 @keyframes fifaBarShift{0%{background-position:0% 0}100%{background-position:200% 0}}
 
 /* ═══ LOGIN — fondo oscuro ═══ */
-.login-wrap{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+.login-wrap{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative}
 @media(max-width:700px){.login-wrap{grid-template-columns:1fr}.login-hero{min-height:240px}}
 .login-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0a0a0a}
 .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 30% 40%,rgba(201,168,76,.08) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 70% 70%,rgba(255,255,255,.03) 0%,transparent 50%)}
@@ -64,7 +64,7 @@ button { cursor:pointer; }
 .hero-title{font-size:clamp(2rem,4.5vw,3rem);font-weight:700;color:#fff;letter-spacing:-.03em;line-height:1.05;margin-bottom:.5rem;text-shadow:0 0 40px rgba(255,255,255,.12),0 4px 20px rgba(0,0,0,.4)}
 .hero-tagline{font-size:15px;color:rgba(255,255,255,.65);font-style:italic;margin-bottom:1.5rem;text-shadow:0 0 15px rgba(255,255,255,.08)}
 .hero-flags{max-width:400px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
-.hero-trophy-img{width:320px;height:auto;margin-top:1.25rem}
+.hero-escape-img{position:absolute;bottom:0;left:50%;transform:translateX(-38%);width:380px;height:auto;z-index:10;pointer-events:none}
 .flag-img{width:32px;height:22px;border-radius:3px;object-fit:cover;box-shadow:0 1px 4px rgba(0,0,0,.4);opacity:.75;transition:opacity .2s,transform .2s}
 .flag-img:hover{opacity:1;transform:scale(1.2)}
 .login-panel{display:flex;align-items:center;justify-content:center;padding:3rem;background:#151517}
