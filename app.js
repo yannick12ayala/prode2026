@@ -236,48 +236,62 @@ async function mostrarRankingEmp(btnEl) {
   const sc = users.map(u => ({
     n: u,
     picks: Object.keys(allP[u]).length,
-    pts: hayRes ? calcPtsUsuario(allP[u], res) : null
-  })).sort((a, b) => hayRes ? b.pts - a.pts : b.picks - a.picks);
+    pts: calcPtsUsuario(allP[u], res)
+  })).sort((a, b) => b.pts - a.pts || b.picks - a.picks);
 
-  const mx = sc.length ? Math.max(...sc.map(s => hayRes ? s.pts : s.picks), 1) : 1;
+  const mx = sc.length ? Math.max(...sc.map(s => s.pts), 1) : 1;
   const medals = ['🥇','🥈','🥉'];
 
-  // Encontrar posición del usuario actual
   const miPos = sc.findIndex(u => u.n === cUser);
 
   let html = `<div class="semana-header"><span class="semana-badge">🏆</span> Ranking General — Top 50</div>
-    <div class="semana-meta">${users.length} participantes${hayRes ? ' · Puntos actualizados' : ' · Ordenado por pronósticos cargados'}</div>`;
+    <div class="semana-meta">${users.length} participantes · ${hayRes ? 'Puntos actualizados' : 'Resultados pendientes — puntos en 0'}</div>`;
 
   if (miPos >= 0) {
     const yo = sc[miPos];
-    html += `<div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:var(--r-lg);padding:14px 18px;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px">
-      <div style="font-size:24px;font-weight:700;color:var(--gold)">${miPos + 1}°</div>
+    html += `<div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:1.25rem;display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px;font-weight:900;color:var(--gold);min-width:48px;text-align:center">${miPos + 1}°</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:var(--text)">${nombreDisplay(cUser, false)}</div>
-        <div style="font-size:12px;color:var(--text2)">${yo.picks} pronósticos cargados${hayRes ? ' · ' + yo.pts + ' pts' : ''}</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">${nombreDisplay(cUser, false)}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${yo.picks} pronósticos cargados</div>
       </div>
-      <div style="font-size:11px;color:var(--text3)">Tu posición</div>
+      <div style="text-align:right">
+        <div style="font-size:28px;font-weight:900;color:var(--gold);line-height:1">${yo.pts}</div>
+        <div style="font-size:11px;color:var(--text3)">puntos</div>
+      </div>
     </div>`;
   }
 
-  html += `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem">`;
-  
+  html += `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden">
+    <div style="display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)">
+      <div style="width:28px"></div>
+      <div style="width:28px;margin-left:10px"></div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-left:12px">Participante</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);width:60px;text-align:right;margin-right:12px">Pron.</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);min-width:60px;text-align:right">Pts</div>
+    </div>`;
+
   if (!sc.length) {
-    html += '<p style="text-align:center;color:var(--text3);padding:1rem">Aún no hay participantes</p>';
+    html += '<p style="text-align:center;color:var(--text3);padding:1.5rem">Aún no hay participantes</p>';
   } else {
     sc.slice(0, 50).forEach((u, i) => {
       const esYo = u.n === cUser;
-      html += `<div class="rk-row" style="${esYo ? 'background:rgba(201,168,76,.08);border-radius:6px;padding:10px 8px;margin:0 -8px' : ''}">
-        <div class="rk-pos">${medals[i] || i+1}</div>
-        <div class="rk-av">${inicialesDisplay(u.n)}</div>
-        <div class="rk-name">${nombreDisplay(u.n, false)}${esYo ? ' <span style="font-size:10px;color:var(--gold)">(vos)</span>' : ''}</div>
-        <div class="rk-picks">${u.picks} pron.</div>
-        <div class="rk-bar"><div class="rk-bar-fill" style="width:${Math.round((hayRes?u.pts:u.picks)/mx*100)}%"></div></div>
-        <div class="rk-pts">${hayRes ? u.pts + ' pts' : '—'}</div>
+      const ptColor = u.pts > 0 ? 'var(--gold)' : 'var(--text3)';
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;${esYo ? 'background:rgba(201,168,76,.08)' : i < 3 ? 'background:rgba(201,168,76,.03)' : ''}" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='${esYo ? 'rgba(201,168,76,.08)' : i < 3 ? 'rgba(201,168,76,.03)' : 'transparent'}'">
+        <div style="width:28px;text-align:center;font-size:${i < 3 ? '16px' : '12px'};font-weight:700;color:var(--text3);flex-shrink:0">${medals[i] || (i+1)}</div>
+        <div style="width:28px;height:28px;border-radius:50%;background:${esYo ? 'rgba(201,168,76,.25)' : 'var(--accent-bg)'};color:${esYo ? 'var(--gold)' : 'var(--accent)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${inicialesDisplay(u.n)}</div>
+        <div style="flex:1;min-width:0;padding-left:8px">
+          <div style="font-size:13px;font-weight:${esYo ? '700' : '500'};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nombreDisplay(u.n, false)}${esYo ? ' <span style="font-size:10px;color:var(--gold);font-weight:600">(vos)</span>' : ''}</div>
+        </div>
+        <div style="width:60px;text-align:right;font-size:11px;color:var(--text3);margin-right:12px;flex-shrink:0">${u.picks}</div>
+        <div style="min-width:60px;text-align:right;flex-shrink:0">
+          <span style="font-size:${i < 3 ? '18px' : '15px'};font-weight:900;color:${ptColor}">${u.pts}</span>
+          <span style="font-size:10px;color:var(--text3);margin-left:2px">pts</span>
+        </div>
       </div>`;
     });
     if (sc.length > 50) {
-      html += `<p style="text-align:center;color:var(--text3);font-size:12px;padding:10px 0">Mostrando los primeros 50 de ${sc.length} participantes</p>`;
+      html += `<p style="text-align:center;color:var(--text3);font-size:12px;padding:10px 0">Mostrando 50 de ${sc.length} participantes</p>`;
     }
   }
   html += '</div>';
@@ -331,10 +345,10 @@ async function renderResumen() {
   const sc = users.map(u => ({
     n: u,
     picks: Object.keys(allPicks[u]).length,
-    pts: hayRes ? calcPtsUsuario(allPicks[u], lRes) : null
-  })).sort((a, b) => hayRes ? b.pts - a.pts : b.picks - a.picks);
+    pts: calcPtsUsuario(allPicks[u], lRes)
+  })).sort((a, b) => b.pts - a.pts || b.picks - a.picks);
 
-  const mx = sc.length ? Math.max(...sc.map(s => hayRes ? s.pts : s.picks), 1) : 1;
+  const mx = sc.length ? Math.max(...sc.map(s => s.pts), 1) : 1;
   const medals = ['🥇','🥈','🥉'];
 
   let top50Html = `
@@ -344,31 +358,39 @@ async function renderResumen() {
           <span style="font-size:18px">🏆</span>
           <span style="font-size:15px;font-weight:700;color:var(--text)">Top 50 Participantes</span>
         </div>
-        <span style="font-size:12px;color:var(--text3)">${hayRes ? 'Ordenado por puntos' : 'Sin resultados aún — ordenado por pronósticos'}</span>
+        <span style="font-size:12px;color:var(--text3)">${hayRes ? 'Ordenado por puntos' : 'Sin resultados aún — puntos en 0'}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;padding:8px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)">
+        <div style="width:32px"></div>
+        <div style="width:34px;margin-left:14px"></div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-left:14px">Participante</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);width:120px;text-align:right;padding-right:20px">Pronósticos</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);min-width:80px;text-align:right">Puntos</div>
       </div>`;
 
   if (!sc.length) {
     top50Html += '<p style="font-size:13px;color:var(--text3);padding:1.5rem;text-align:center">Sin participantes aún</p>';
   } else {
     sc.slice(0, 50).forEach((u, i) => {
-      const barWidth = Math.round((hayRes ? u.pts : u.picks) / mx * 100);
+      const barWidth = Math.round(u.pts / mx * 100);
       const isTop3 = i < 3;
+      const ptColor = u.pts > 0 ? 'var(--gold)' : 'var(--text3)';
       top50Html += `
-        <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;${isTop3 ? 'background:rgba(201,168,76,.04)' : ''}" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background='${isTop3 ? 'rgba(201,168,76,.04)' : 'transparent'}'">
-          <div style="width:32px;text-align:center;font-size:${isTop3 ? '20px' : '13px'};font-weight:700;color:var(--text3);flex-shrink:0">${medals[i] || (i+1)}</div>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;${isTop3 ? 'background:rgba(201,168,76,.04)' : ''}" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='${isTop3 ? 'rgba(201,168,76,.04)' : 'transparent'}'">
+          <div style="width:32px;text-align:center;font-size:${isTop3 ? '20px' : '13px'};font-weight:700;color:var(--text2);flex-shrink:0">${medals[i] || (i+1)}</div>
           <div style="width:34px;height:34px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${inicialesDisplay(u.n)}</div>
-          <div style="flex:1;min-width:0">
+          <div style="flex:1;min-width:0;padding-left:0">
             <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nombreDisplay(u.n, true)}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px">${u.picks} pronósticos cargados</div>
           </div>
-          <div style="flex:0 0 120px">
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden">
-              <div style="height:100%;border-radius:99px;width:${barWidth}%;background:linear-gradient(90deg,var(--fifa-blue),var(--fifa-sky),var(--fifa-green))"></div>
+          <div style="flex:0 0 120px;text-align:right;padding-right:20px">
+            <div style="font-size:11px;color:var(--text3)">${u.picks} / 104</div>
+            <div style="height:4px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-top:4px">
+              <div style="height:100%;border-radius:99px;width:${Math.round(u.picks/104*100)}%;background:linear-gradient(90deg,var(--fifa-blue),var(--fifa-sky))"></div>
             </div>
           </div>
           <div style="min-width:80px;text-align:right;flex-shrink:0">
-            <div style="font-size:${isTop3 ? '20px' : '16px'};font-weight:900;color:${hayRes ? 'var(--gold)' : 'var(--text3)'}">${hayRes ? u.pts : '—'}</div>
-            ${hayRes ? `<div style="font-size:10px;color:var(--text3);margin-top:1px">puntos</div>` : ''}
+            <div style="font-size:${isTop3 ? '22px' : '18px'};font-weight:900;color:${ptColor};line-height:1">${u.pts}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">pts</div>
           </div>
         </div>`;
     });
