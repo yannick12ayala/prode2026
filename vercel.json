@@ -1,5 +1,4 @@
 {
   "buildCommand": "",
-  "outputDirectory": "prode2026",
-  "public": "prode2026"
+  "outputDirectory": "."
 }
