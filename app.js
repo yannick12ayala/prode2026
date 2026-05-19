@@ -654,7 +654,7 @@ function setResGol(mid, lado, valor) {
 }
 
 async function guardarRes() {
-  const btn = document.querySelector('#aSecResultados .btn-primary');
+  const btn = document.querySelector('#aSecResultados .btn-login');
   btn.disabled = true; btn.textContent = 'Guardando...';
   // Limpiar resultados vacíos
   const limpios = {};
