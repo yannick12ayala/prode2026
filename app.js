@@ -160,7 +160,7 @@ function renderEmpleado() {
   // Nav
   const navHtml = habilitadas.map(s =>
     `<button class="nav-btn ${s.id === semanaVista ? 'active' : ''}" onclick="cambiarSemana(${s.id})">Sem. ${s.id}</button>`
-  ).join('') + `<button class="nav-btn" onclick="mostrarRankingEmp(this)" style="margin-left:auto;border-color:var(--gold);color:var(--gold)">🏆 Ranking</button>`;
+  ).join('') + `<button class="nav-btn" onclick="mostrarRankingEmp(this)" style="margin-left:auto;background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold);font-weight:700;padding:6px 16px;gap:6px;display:inline-flex;align-items:center">🏆 Ver Ranking</button>`;
   document.getElementById('empNav').innerHTML = navHtml;
 
   // Contenido
@@ -309,7 +309,7 @@ function calcPtsUsuario(picks, res) {
 // Helper: muestra nombre del empleado para admin, o nombre formateado
 function nombreDisplay(legajo, paraAdmin) {
   const raw = EMPLEADOS[legajo];
-  if (!raw) return legajo;
+  if (!raw) return paraAdmin ? legajo : 'Participante';
   const partes = raw.split(' ');
   const apellido = partes[0];
   const nombre = partes.slice(1).join(' ') || apellido;
