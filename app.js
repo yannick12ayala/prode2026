@@ -536,28 +536,60 @@ async function renderPicksAdm() {
 async function renderResAdmin() {
   if (!Object.keys(lRes).length) lRes = await dbLoadResults();
 
-  let h = '';
+  let h = '<div style="display:grid;gap:2rem">';
+  const colors = ['#1a3a8a', '#c4161c', '#00a651', '#f26522', '#4fa3e0', '#6d2077'];
+
   // Por semana
   for (const sem of SEMANAS) {
     const partidos = TODOS.filter(p => p.semana === sem.id);
     if (!partidos.length) continue;
-    h += `<p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b6a65;margin:16px 0 6px">Semana ${sem.id} · ${sem.label}</p>`;
-    partidos.forEach(p => {
+
+    const color = colors[(sem.id - 1) % colors.length];
+    h += `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;border-left:4px solid ${color}">
+      <div style="background:${color};color:#fff;padding:14px 18px">
+        <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Semana ${sem.id} · ${sem.label}</div>
+      </div>
+      <div style="padding:1rem">`;
+
+    partidos.forEach((p, idx) => {
       const r = lRes[p.id] || { l: null, v: null };
       const vL = r.l != null ? r.l : '';
       const vV = r.v != null ? r.v : '';
-      h += `<div class="match-row">
-        <div class="match-date">${p.f}</div>
-        <div class="match-team match-team-loc">${p.loc}</div>
-        <div class="score-input">
-          <input type="number" min="0" max="20" placeholder="–" value="${vL}" onchange="setResGol('${p.id}','l',this.value)"/>
-          <span class="score-dash">:</span>
-          <input type="number" min="0" max="20" placeholder="–" value="${vV}" onchange="setResGol('${p.id}','v',this.value)"/>
+      const bg = idx % 2 === 0 ? 'rgba(255,255,255,.02)' : 'transparent';
+
+      h += `<div style="background:${bg};border-radius:8px;padding:1.25rem;margin-bottom:${idx < partidos.length - 1 ? '1rem' : '0'};display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;transition:all .2s;border:1px solid transparent" onmouseover="this.style.background='rgba(255,255,255,.06)';this.style.borderColor='var(--border)'" onmouseout="this.style.background='${bg}';this.style.borderColor='transparent'">
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:100px">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);letter-spacing:.05em">${p.f}</div>
+          <div style="font-size:11px;color:var(--text2)">${p.g ? 'Grupo ' + p.g : p.r}</div>
         </div>
-        <div class="match-team match-team-vis">${p.vis}</div>
+
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center">
+          <div style="text-align:right">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Local</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${p.loc}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-direction:column">
+            <input type="number" min="0" max="20" placeholder="–" value="${vL}" onchange="setResGol('${p.id}','l',this.value)" style="width:50px;height:50px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--border2);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:0;outline:none;transition:all .2s" onfocus="this.style.borderColor='var(--fifa-sky)';this.style.boxShadow='0 0 0 3px rgba(79,163,224,.2)'"/>
+            <span style="font-size:14px;color:var(--text3);font-weight:700">:</span>
+            <input type="number" min="0" max="20" placeholder="–" value="${vV}" onchange="setResGol('${p.id}','v',this.value)" style="width:50px;height:50px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--border2);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:0;outline:none;transition:all .2s" onfocus="this.style.borderColor='var(--fifa-sky)';this.style.boxShadow='0 0 0 3px rgba(79,163,224,.2)'"/>
+          </div>
+          <div style="text-align:left">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Visitante</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${p.vis}</div>
+          </div>
+        </div>
+
+        <div style="text-align:center;padding:10px 14px;background:${vL !== '' && vV !== '' ? 'rgba(15,123,75,.15)' : 'rgba(255,255,255,.04)'};border-radius:6px;border:1px solid ${vL !== '' && vV !== '' ? 'rgba(15,123,75,.3)' : 'rgba(255,255,255,.08)'}">
+          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Resultado</div>
+          <div style="font-size:20px;font-weight:700;color:${vL !== '' && vV !== '' ? '#0f7b4b' : 'var(--text2)'}">${vL !== '' && vV !== '' ? vL + '-' + vV : '–'}</div>
+        </div>
       </div>`;
     });
+
+    h += `</div></div>`;
   }
+
+  h += '</div>';
   document.getElementById('aResWrap').innerHTML = h;
 }
 
