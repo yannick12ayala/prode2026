@@ -35,7 +35,7 @@
         <h1 class="hero-title">Prode Mundial</h1>
         <p class="hero-tagline">Predecí, competí y ganá.</p>
         <div class="hero-flags" id="heroFlags"></div>
-        <img src="hero-pixar.png" alt="" class="hero-trophy-img"/>
+        <img src="hero-pixar.png" alt="" class="hero-trophy-img" crossorigin="anonymous" onload="quitarFondoBlanco(this)"/>
       </div>
 <script>
 // Banderas con imágenes reales (flagcdn.com)
@@ -161,6 +161,18 @@ document.getElementById('heroFlags').innerHTML = FLAGS.map(c =>
 <script src="empleados.js"></script>
 <script src="db.js"></script>
 <script src="app.js"></script>
-<script>function togglePass(){const i=document.getElementById('iPass');i.type=i.type==='password'?'text':'password';}</script>
+<script>function togglePass(){const i=document.getElementById('iPass');i.type=i.type==='password'?'text':'password';}
+function quitarFondoBlanco(img){
+  const c=document.createElement('canvas');
+  c.width=img.naturalWidth;c.height=img.naturalHeight;
+  const ctx=c.getContext('2d');
+  ctx.drawImage(img,0,0);
+  const d=ctx.getImageData(0,0,c.width,c.height),px=d.data;
+  for(let i=0;i<px.length;i+=4){
+    if(px[i]>220&&px[i+1]>220&&px[i+2]>220) px[i+3]=0;
+  }
+  ctx.putImageData(d,0,0);
+  img.src=c.toDataURL('image/png');
+}</script>
 </body>
 </html>
