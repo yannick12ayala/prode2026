@@ -337,8 +337,6 @@ async function renderResumen() {
   const mx = sc.length ? Math.max(...sc.map(s => hayRes ? s.pts : s.picks), 1) : 1;
   const medals = ['🥇','🥈','🥉'];
 
-  const medals = ['🥇','🥈','🥉'];
-
   let top50Html = `
     <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-top:1.5rem">
       <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
