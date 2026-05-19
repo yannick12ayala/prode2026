@@ -318,14 +318,14 @@ async function renderResumen() {
   lRes = await dbLoadResults();
   const users = Object.keys(allPicks);
   const totalPicks = users.reduce((s, u) => s + Object.keys(allPicks[u]).length, 0);
-  const avgPicks = users.length ? Math.round(totalPicks / users.length) : 0;
+  const totalPts = users.reduce((s, u) => s + (calcPtsUsuario(allPicks[u], lRes) || 0), 0);
   const resCount = Object.keys(lRes).length;
   const hayRes = resCount > 0;
 
   document.getElementById('aMetrics').innerHTML = `
     <div class="metric-card"><div class="metric-num">${users.length}</div><div class="metric-lbl">participantes</div></div>
     <div class="metric-card"><div class="metric-num">${totalPicks}</div><div class="metric-lbl">pronósticos totales</div></div>
-    <div class="metric-card"><div class="metric-num">${avgPicks}</div><div class="metric-lbl">promedio</div><div class="metric-sub">por persona</div></div>
+    <div class="metric-card"><div class="metric-num">${totalPts}</div><div class="metric-lbl">puntos totales</div><div class="metric-sub">en competencia</div></div>
     <div class="metric-card"><div class="metric-num">${resCount}</div><div class="metric-lbl">resultados</div><div class="metric-sub">de 104</div></div>`;
 
   const sc = users.map(u => ({
@@ -337,15 +337,37 @@ async function renderResumen() {
   const mx = sc.length ? Math.max(...sc.map(s => hayRes ? s.pts : s.picks), 1) : 1;
   const medals = ['🥇','🥈','🥉'];
 
-  document.getElementById('aTop5').innerHTML = sc.slice(0, 5).map((u, i) => `
-    <div class="rk-row">
-      <div class="rk-pos">${medals[i] || i+1}</div>
-      <div class="rk-av">${inicialesDisplay(u.n)}</div>
-      <div class="rk-name">${nombreDisplay(u.n, true)}</div>
-      <div class="rk-picks">${u.picks} pron.</div>
-      <div class="rk-bar"><div class="rk-bar-fill" style="width:${Math.round((hayRes?u.pts:u.picks)/mx*100)}%"></div></div>
-      <div class="rk-pts">${hayRes ? u.pts + ' pts' : '—'}</div>
-    </div>`).join('') || '<p style="font-size:12px;color:#6b6a65;padding:1rem 0">Sin participantes aún</p>';
+  let top50Html = `
+    <div style="margin-top:2rem">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+        <div style="font-size:20px">🏆</div>
+        <h3 style="font-size:16px;font-weight:700;color:var(--text);margin:0">Top 50 - ${hayRes ? 'Por puntos' : 'Por pronósticos cargados'}</h3>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;max-height:600px;overflow-y:auto">
+  `;
+
+  if (!sc.length) {
+    top50Html += '<p style="font-size:12px;color:#6b6a65;padding:1rem 0">Sin participantes aún</p>';
+  } else {
+    sc.slice(0, 50).forEach((u, i) => {
+      const barWidth = Math.round((hayRes ? u.pts : u.picks) / mx * 100);
+      top50Html += `
+        <div class="rk-row" style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+          <div class="rk-pos" style="font-weight:900;font-size:15px;min-width:30px">${medals[i] || (i+1)}</div>
+          <div class="rk-av">${inicialesDisplay(u.n)}</div>
+          <div class="rk-name">${nombreDisplay(u.n, true)}</div>
+          <div class="rk-picks">${u.picks} pron.</div>
+          <div class="rk-bar"><div class="rk-bar-fill" style="width:${barWidth}%"></div></div>
+          <div class="rk-pts" style="font-size:14px;font-weight:800;min-width:70px;text-align:right">${hayRes ? u.pts + ' pts' : '—'}</div>
+        </div>`;
+    });
+    if (sc.length > 50) {
+      top50Html += `<p style="font-size:11px;color:var(--text3);padding:10px 0;text-align:center">Mostrando 50 de ${sc.length} participantes</p>`;
+    }
+  }
+
+  top50Html += `</div></div>`;
+  document.getElementById('aTop5').innerHTML = top50Html;
 
   renderChart();
 }
