@@ -2,9 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0d0d0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Prode 2026"/>
 <title>Prode Mundial 2026 — Secretaría de Seguridad Pilar</title>
 <link rel="icon" href="logo-mundial2026.png" type="image/png"/>
+<link rel="apple-touch-icon" href="logo-mundial2026.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
@@ -55,7 +61,7 @@ document.getElementById('heroFlags').innerHTML = FLAGS.map(c =>
         <p class="form-sub">Ingresá tus datos para entrar al Prode</p>
         <div class="field">
           <label>Número de legajo</label>
-          <input type="text" id="iNom" placeholder="Ej: 4582" autocomplete="off"/>
+          <input type="text" id="iNom" placeholder="Ej: 4582" autocomplete="off" inputmode="numeric"/>
         </div>
         <div class="field">
           <label>Contraseña <span class="hint">(solo RR.HH.)</span></label>

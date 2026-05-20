@@ -144,9 +144,9 @@ function matchRowEmp(p) {
     <div class="match-date">${p.f}</div>
     <div class="match-team match-team-loc">${p.loc}</div>
     <div class="score-input">
-      <input type="number" min="0" max="20" placeholder="–" value="${vL}" onchange="setGol('${p.id}','l',this.value)"/>
+      <input type="number" inputmode="numeric" min="0" max="20" placeholder="–" value="${vL}" onchange="setGol('${p.id}','l',this.value)"/>
       <span class="score-dash">:</span>
-      <input type="number" min="0" max="20" placeholder="–" value="${vV}" onchange="setGol('${p.id}','v',this.value)"/>
+      <input type="number" inputmode="numeric" min="0" max="20" placeholder="–" value="${vV}" onchange="setGol('${p.id}','v',this.value)"/>
     </div>
     <div class="match-team match-team-vis">${p.vis}</div>
   </div>`;

@@ -1,4 +1,5 @@
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
 :root {
   --bg: #0d0d0f; --surface: rgba(255,255,255,.06); --surface-solid: #18181b;
   --border: rgba(255,255,255,.08); --border2: rgba(255,255,255,.14);
@@ -255,36 +256,76 @@ button { cursor:pointer; }
 .score-real{display:inline-block;padding:3px 10px;border-radius:99px;background:var(--gold);color:#0a0a0a;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;margin-left:6px}
 
 @media(max-width:768px){
-  .adm-layout{grid-template-columns:1fr}
-  .sidebar{display:flex;overflow-x:auto;padding:0;border-bottom:1px solid rgba(255,255,255,.06);gap:0}
-  .sidebar-section{display:none}
-  .sidebar-item{white-space:nowrap;padding:12px 14px;border-left:none;border-bottom:3px solid transparent;font-size:12px}
-  .sidebar-item.active{background:transparent;border-bottom-color:var(--fifa-sky);border-left:none}
-  .adm-main{padding:1rem}
+  /* ── Inputs: evitar zoom en iOS ── */
+  input[type="text"],input[type="password"],input[type="number"]{font-size:16px}
+
+  /* ── Login: pantalla completa tipo app ── */
   .login-wrap{grid-template-columns:1fr}
-  .login-hero{min-height:280px}
-  .hero-org{font-size:9px;letter-spacing:.12em}
-  .hero-flags{max-width:300px;gap:4px}
-  .flag-img{width:26px;height:18px;border-radius:2px}
-  .hero-logo{width:120px}
-  .hero-title{font-size:1.8rem}
-  .login-panel{padding:1.5rem}
-  .topbar{height:auto;min-height:48px;flex-wrap:wrap;padding:8px 12px;gap:6px}
-  .topbar-brand{font-size:13px;order:1}
+  .login-hero{min-height:200px;padding:0}
+  .hero-content{padding:1.75rem 1.25rem 1rem}
+  .hero-org{font-size:9px;letter-spacing:.12em;margin-bottom:1rem}
+  .hero-logo{width:90px;margin-bottom:.75rem}
+  .hero-title{font-size:1.6rem;margin-bottom:.25rem}
+  .hero-tagline{font-size:13px;margin-bottom:1rem}
+  .hero-flags{max-width:300px;gap:3px}
+  .flag-img{width:24px;height:16px;border-radius:2px}
+  .login-panel{padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom))}
+
+  /* ── Topbar: compacto, sin nav ── */
+  .topbar{height:auto;min-height:calc(50px + env(safe-area-inset-top));padding:calc(8px + env(safe-area-inset-top)) 14px 8px;flex-wrap:nowrap;gap:8px;top:0}
+  .topbar-brand{font-size:13px;order:1;flex:1}
   .topbar-brand span{display:none}
   .topbar-org{display:none}
-  .topbar-nav{order:3;width:100%;justify-content:flex-start;overflow-x:auto;padding:4px 0;gap:4px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
-  .topbar-user{order:2;margin-left:auto}
+  .topbar-user{order:2;gap:6px}
   .topbar-user>span{display:none}
   .topbar-logo{width:22px}
-  .nav-btn{font-size:11px;padding:4px 10px;flex-shrink:0}
-  .btn-ghost{font-size:11px;padding:4px 8px}
-  .emp-progress-bar{padding:8px 12px}
+  .btn-ghost{font-size:12px;padding:6px 10px;min-height:36px}
+
+  /* ── Nav → barra inferior fija tipo app ── */
+  .topbar-nav{
+    position:fixed;bottom:0;left:0;right:0;
+    z-index:500;order:unset;width:100%;
+    background:rgba(10,10,12,.97);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-top:1px solid rgba(255,255,255,.1);
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+    display:flex;justify-content:space-around;align-items:center;
+    gap:2px;flex-wrap:nowrap;overflow:visible
+  }
+  .nav-btn{
+    flex:1;min-width:0;min-height:46px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:10px;padding:4px 2px;border:none;border-radius:12px;
+    background:transparent;color:var(--text3);gap:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    transition:all .15s
+  }
+  .nav-btn.active{background:rgba(201,168,76,.15);color:var(--gold);font-weight:700}
+  .nav-btn:active{transform:scale(.93)}
+
+  /* ── Barra de progreso ── */
+  .emp-progress-bar{padding:6px 14px}
   .emp-progress-stats{font-size:11px}
-  .save-bar{padding:8px 12px;flex-direction:column;gap:6px;align-items:stretch}
-  .save-bar>span{font-size:11px;text-align:center}
-  .btn-save{width:100%;text-align:center;justify-content:center}
-  .emp-main{padding:1rem}
+
+  /* ── Save bar: sticky sobre la bottom nav ── */
+  .save-bar{
+    position:sticky;bottom:calc(58px + env(safe-area-inset-bottom));
+    z-index:400;padding:8px 14px;
+    background:rgba(10,10,12,.95);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-top:1px solid rgba(255,255,255,.08);border-bottom:none;
+    box-shadow:0 -6px 20px rgba(0,0,0,.35);
+    flex-direction:row;gap:10px;align-items:center
+  }
+  .save-bar>span{font-size:11px;flex:1}
+  .btn-save{padding:10px 20px;min-height:40px;white-space:nowrap}
+
+  /* ── Contenido: padding para no quedar tapado ── */
+  .emp-body{padding-bottom:calc(130px + env(safe-area-inset-bottom))}
+  .emp-main{padding:.875rem}
+
+  /* ── Partidos ── */
   .semana-header{font-size:15px;gap:8px}
   .semana-badge{font-size:10px;padding:2px 8px}
   .semana-meta{font-size:11px;margin-bottom:1rem}
@@ -293,11 +334,21 @@ button { cursor:pointer; }
   .group-card{padding:1rem}
   .group-card-title{font-size:13px}
   .group-card-meta{font-size:10px;margin-bottom:8px}
-  .match-row{flex-wrap:wrap;gap:2px;padding:10px 0}
+  .match-row{flex-wrap:wrap;gap:2px;padding:11px 0}
   .match-date{width:100%;font-size:9px;margin-bottom:4px;opacity:.6}
-  .match-team{font-size:11px;min-width:0}
-  .score-input input[type="number"]{width:34px;height:28px;font-size:13px}
-  .score-dash{font-size:10px}
+  .match-team{font-size:12px;min-width:0}
+  .score-input input[type="number"]{width:42px;height:42px;font-size:16px}
+  .score-dash{font-size:11px}
+  .elim-card{padding:1rem}
+  .elim-title{font-size:13px;margin-bottom:8px}
+
+  /* ── Admin ── */
+  .adm-layout{grid-template-columns:1fr}
+  .sidebar{display:flex;overflow-x:auto;padding:0;border-bottom:1px solid rgba(255,255,255,.06);gap:0}
+  .sidebar-section{display:none}
+  .sidebar-item{white-space:nowrap;padding:12px 14px;border-left:none;border-bottom:3px solid transparent;font-size:12px}
+  .sidebar-item.active{background:transparent;border-bottom-color:var(--fifa-sky);border-left:none}
+  .adm-main{padding:1rem}
   .metrics-grid{grid-template-columns:repeat(2,1fr);gap:8px}
   .metric-card{padding:12px 14px}
   .metric-num{font-size:22px}
@@ -305,7 +356,6 @@ button { cursor:pointer; }
   .metric-sub{font-size:9px}
   .dash-grid{grid-template-columns:1fr;gap:.75rem}
   .dash-card{padding:1rem}
-  .dash-card canvas{height:160px!important}
   .rk-row{gap:6px;padding:8px 0}
   .rk-pos{width:20px;font-size:11px}
   .rk-av{width:24px;height:24px;font-size:9px}
@@ -321,11 +371,9 @@ button { cursor:pointer; }
   .config-card h3{font-size:14px}
   .field-row{flex-direction:column;gap:8px}
   .field-row .btn-secondary{width:100%}
-  .search-input{font-size:12px;padding:8px 12px}
+  .search-input{font-size:16px;padding:10px 12px}
   .section-header h2{font-size:15px}
   .section-header{flex-wrap:wrap;gap:8px}
-  .elim-card{padding:1rem}
-  .elim-title{font-size:13px;margin-bottom:8px}
   .table-card{padding:.75rem}
   .alert-ok,.alert-warn,.alert-info,.error{font-size:12px;padding:8px 12px}
 }
@@ -334,17 +382,16 @@ button { cursor:pointer; }
 .rk-clickable:hover { background:rgba(79,163,224,.12); border-radius:6px; }
 
 @media(max-width:380px){
-  .topbar{padding:6px 8px}
-  .emp-main{padding:.75rem}
+  .emp-main{padding:.625rem}
   .groups-grid{gap:.5rem}
   .group-card{padding:.75rem}
-  .match-team{font-size:10px}
-  .score-input input[type="number"]{width:30px;height:26px;font-size:12px}
+  .match-team{font-size:11px}
+  .score-input input[type="number"]{width:40px;height:40px;font-size:16px}
   .metrics-grid{grid-template-columns:1fr 1fr;gap:6px}
   .metric-num{font-size:18px}
   .rk-bar{display:none}
-  .nav-btn{font-size:10px;padding:3px 8px}
-  .login-panel{padding:1rem}
-  .hero-logo{width:100px}
-  .hero-title{font-size:1.5rem}
+  .nav-btn{font-size:9px}
+  .login-panel{padding:1.25rem 1rem calc(1.25rem + env(safe-area-inset-bottom))}
+  .hero-logo{width:80px}
+  .hero-title{font-size:1.4rem}
 }
