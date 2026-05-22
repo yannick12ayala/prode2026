@@ -19,14 +19,14 @@ function esPartidoBloqueado(p) {
   if (!h) return false;
   const inicio = parseFechaPartido(p.f, h);
   if (!inicio) return false;
-  return Date.now() >= inicio.getTime() - 60 * 60 * 1000;
+  return Date.now() >= inicio.getTime() - 5 * 60 * 1000;
 }
 function minutosParaBloqueo(p) {
   const h = lHorarios[p.id];
   if (!h) return null;
   const inicio = parseFechaPartido(p.f, h);
   if (!inicio) return null;
-  return Math.ceil((inicio.getTime() - 60 * 60 * 1000 - Date.now()) / 60000);
+  return Math.ceil((inicio.getTime() - 5 * 60 * 1000 - Date.now()) / 60000);
 }
 
 // ── Transición FIFA ──
@@ -168,7 +168,7 @@ function matchRowEmp(p) {
   const vV = pk.v != null ? pk.v : '';
   const bloqueado = esPartidoBloqueado(p);
   const mins = !bloqueado ? minutosParaBloqueo(p) : null;
-  const pronto = mins !== null && mins > 0 && mins <= 60;
+  const pronto = mins !== null && mins > 0 && mins <= 15;
 
   let scoreHtml;
   if (bloqueado) {
