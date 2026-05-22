@@ -1,8 +1,33 @@
 // ── Estado global ──
 let cUser = null, isAdm = false;
 let lPicks = {}, lRes = {}, allPicks = {};
+let lHorarios = {};
 let chartDist = null;
 let semanaVista = null;
+
+// ── Bloqueo por horario (1h antes del partido) ──
+function parseFechaPartido(f, h) {
+  const meses = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};
+  const [dia, mes] = f.trim().split(' ');
+  const m = meses[mes];
+  if (!m) return null;
+  const [hh, mm] = h.split(':').map(Number);
+  return new Date(2026, m - 1, parseInt(dia), hh, mm, 0);
+}
+function esPartidoBloqueado(p) {
+  const h = lHorarios[p.id];
+  if (!h) return false;
+  const inicio = parseFechaPartido(p.f, h);
+  if (!inicio) return false;
+  return Date.now() >= inicio.getTime() - 60 * 60 * 1000;
+}
+function minutosParaBloqueo(p) {
+  const h = lHorarios[p.id];
+  if (!h) return null;
+  const inicio = parseFechaPartido(p.f, h);
+  if (!inicio) return null;
+  return Math.ceil((inicio.getTime() - 60 * 60 * 1000 - Date.now()) / 60000);
+}
 
 // ── Transición FIFA ──
 function showFifaTransition() {
@@ -70,6 +95,7 @@ async function doLogin() {
       }
       isAdm = false; cUser = usuario;
       lPicks = await dbLoadPicks(usuario);
+      lHorarios = await dbLoadHorarios();
       // Formatear nombre: "FERNANDEZ LUCIO" → "Lucio Fernandez"
       const partes = nombreEmpleado.split(' ');
       const apellido = partes[0];
@@ -140,14 +166,30 @@ function matchRowEmp(p) {
   const pk = lPicks[p.id] || { l: null, v: null };
   const vL = pk.l != null ? pk.l : '';
   const vV = pk.v != null ? pk.v : '';
-  return `<div class="match-row" data-mid="${p.id}">
+  const bloqueado = esPartidoBloqueado(p);
+  const mins = !bloqueado ? minutosParaBloqueo(p) : null;
+  const pronto = mins !== null && mins > 0 && mins <= 60;
+
+  let scoreHtml;
+  if (bloqueado) {
+    const tieneProno = pk.l != null && pk.v != null;
+    scoreHtml = `<div class="score-locked">
+      <span class="score-locked-val">${tieneProno ? vL + ':' + vV : '–:–'}</span>
+      <span class="lock-icon-sm">🔒</span>
+    </div>`;
+  } else {
+    scoreHtml = `<div class="score-input">
+      ${pronto ? `<div class="cierre-pronto">⏱ ${mins}m</div>` : ''}
+      <input type="number" inputmode="numeric" min="0" max="20" placeholder="–" value="${vL}" onchange="setGol('${p.id}','l',this.value)" oninput="setGol('${p.id}','l',this.value)"/>
+      <span class="score-dash">:</span>
+      <input type="number" inputmode="numeric" min="0" max="20" placeholder="–" value="${vV}" onchange="setGol('${p.id}','v',this.value)" oninput="setGol('${p.id}','v',this.value)"/>
+    </div>`;
+  }
+
+  return `<div class="match-row ${bloqueado ? 'match-locked' : ''}" data-mid="${p.id}">
     <div class="match-date">${p.f}</div>
     <div class="match-team match-team-loc">${p.loc}</div>
-    <div class="score-input">
-      <input type="number" inputmode="numeric" min="0" max="20" placeholder="–" value="${vL}" onchange="setGol('${p.id}','l',this.value)"/>
-      <span class="score-dash">:</span>
-      <input type="number" inputmode="numeric" min="0" max="20" placeholder="–" value="${vV}" onchange="setGol('${p.id}','v',this.value)"/>
-    </div>
+    ${scoreHtml}
     <div class="match-team match-team-vis">${p.vis}</div>
   </div>`;
 }
@@ -742,14 +784,52 @@ async function resetPicks() {
 function aTab(name, el) {
   document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
   el.classList.add('active');
-  ['aSecResumen','aSecRanking','aSecPicks','aSecResultados','aSecConfig'].forEach(s => document.getElementById(s).classList.add('hidden'));
-  const map = { resumen:'aSecResumen', ranking:'aSecRanking', picks:'aSecPicks', resultados:'aSecResultados', config:'aSecConfig' };
+  ['aSecResumen','aSecRanking','aSecPicks','aSecResultados','aSecHorarios','aSecConfig'].forEach(s => document.getElementById(s).classList.add('hidden'));
+  const map = { resumen:'aSecResumen', ranking:'aSecRanking', picks:'aSecPicks', resultados:'aSecResultados', horarios:'aSecHorarios', config:'aSecConfig' };
   document.getElementById(map[name]).classList.remove('hidden');
   if (name === 'resumen')    renderResumen();
   if (name === 'ranking')    renderRanking();
   if (name === 'picks')      renderPicksAdm();
   if (name === 'resultados') renderResAdmin();
+  if (name === 'horarios')   renderHorariosAdm();
   if (name === 'config')     renderStats();
+}
+
+async function renderHorariosAdm() {
+  const wrap = document.getElementById('aHorariosWrap');
+  wrap.innerHTML = '<p style="color:var(--text3);padding:1rem">Cargando…</p>';
+  const hor = await dbLoadHorarios();
+  let html = '';
+  SEMANAS.forEach(s => {
+    const partidos = TODOS.filter(p => p.semana === s.id);
+    html += `<div class="config-card">
+      <h3>Semana ${s.id} — ${s.label}</h3>`;
+    partidos.forEach(p => {
+      const val = hor[p.id] || '';
+      const locked = val && esPartidoBloqueado(p);
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1;font-size:13px;color:${locked ? 'var(--text3)' : 'var(--text)'}">${p.f} · ${p.loc} vs ${p.vis}${locked ? ' 🔒' : ''}</div>
+        <input type="time" class="hor-input" data-id="${p.id}" value="${val}"
+          style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);padding:5px 8px;font-size:13px;font-family:inherit;width:110px;color-scheme:dark"/>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+async function guardarHorarios() {
+  const btn = document.getElementById('btnGuardarHorarios');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const horarios = {};
+  document.querySelectorAll('.hor-input').forEach(inp => {
+    if (inp.value) horarios[inp.dataset.id] = inp.value;
+  });
+  await dbSaveHorarios(horarios);
+  const ok = document.getElementById('horariosOk');
+  ok.classList.remove('hidden');
+  setTimeout(() => ok.classList.add('hidden'), 3000);
+  btn.disabled = false; btn.textContent = 'Guardar horarios';
 }
 
 // Cargar Chart.js

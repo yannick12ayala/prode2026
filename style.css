@@ -381,6 +381,14 @@ button { cursor:pointer; }
 .rk-clickable { cursor:pointer; }
 .rk-clickable:hover { background:rgba(79,163,224,.12); border-radius:6px; }
 
+/* ── Partidos bloqueados por horario ── */
+.match-locked { opacity:.65; }
+.match-locked .match-team { color:var(--text3); }
+.score-locked { display:flex;align-items:center;gap:6px;flex-shrink:0 }
+.score-locked-val { font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--text3);letter-spacing:.05em }
+.lock-icon-sm { font-size:13px;opacity:.7 }
+.cierre-pronto { font-size:9px;font-weight:700;color:var(--amber);text-align:center;white-space:nowrap;margin-bottom:2px }
+
 @media(max-width:380px){
   .emp-main{padding:.625rem}
   .groups-grid{gap:.5rem}

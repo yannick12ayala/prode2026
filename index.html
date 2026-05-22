@@ -148,6 +148,7 @@ document.getElementById('heroFlags').innerHTML = FLAGS.map(c =>
       <div class="sidebar-section">Gestión</div>
       <a class="sidebar-item" id="si-picks" onclick="aTab('picks',this)">Pronósticos</a>
       <a class="sidebar-item" id="si-resultados" onclick="aTab('resultados',this)">Resultados</a>
+      <a class="sidebar-item" id="si-horarios" onclick="aTab('horarios',this)">Horarios</a>
       <div class="sidebar-section">Sistema</div>
       <a class="sidebar-item" id="si-config" onclick="aTab('config',this)">Config</a>
     </aside>
@@ -157,6 +158,13 @@ document.getElementById('heroFlags').innerHTML = FLAGS.map(c =>
       <div id="aSecParticipante" class="hidden"><div class="section-header"><button class="btn-ghost" onclick="renderRanking()" style="gap:0.5rem;display:flex;align-items:center">← Volver al ranking</button></div><div id="participanteHeader" style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.5rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem"><div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Participante</div><div style="font-size:18px;font-weight:700;color:var(--text);margin-top:0.5rem" id="pNombre"></div><div style="font-size:12px;color:var(--text3);margin-top:0.25rem">Legajo: <span id="pLegajo"></span></div></div><div style="text-align:right"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">Estadísticas</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.5rem"><div><div style="font-size:24px;font-weight:700;color:var(--gold)" id="pPuntos">0</div><div style="font-size:11px;color:var(--text3)">puntos</div></div><div><div style="font-size:24px;font-weight:700;color:var(--text)" id="pAciertos">0</div><div style="font-size:11px;color:var(--text3)">aciertos</div></div></div></div></div><div id="participanteAciertos" style="display:grid;gap:1rem"></div></div>
       <div id="aSecPicks" class="hidden"><div class="section-header"><h2>Pronósticos por partido</h2></div><input class="search-input" type="text" placeholder="Buscar selección, grupo..." id="srchP" oninput="renderPicksAdm()"/><div class="table-card" id="aPicks"></div></div>
       <div id="aSecResultados" class="hidden"><div class="section-header"><h2>Cargar resultados</h2></div><div class="alert-info">Ingresá el marcador real de cada partido.</div><div class="table-card" id="aResWrap"></div><button class="btn-login" style="margin-top:1rem" onclick="guardarRes()">Guardar resultados</button><div class="alert-ok hidden" id="resOk">Resultados guardados</div></div>
+      <div id="aSecHorarios" class="hidden">
+        <div class="section-header"><h2>Horarios de partidos</h2></div>
+        <div class="alert-info">Configurá la hora de inicio de cada partido (hora Argentina). El pronóstico se cierra automáticamente 1 hora antes.</div>
+        <div id="aHorariosWrap"></div>
+        <button class="btn-login" id="btnGuardarHorarios" style="margin-top:1rem" onclick="guardarHorarios()">Guardar horarios</button>
+        <div class="alert-ok hidden" id="horariosOk">Horarios guardados correctamente</div>
+      </div>
       <div id="aSecConfig" class="hidden"><div class="section-header"><h2>Configuración</h2></div><div class="config-card"><h3>Reiniciar datos</h3><div class="alert-warn">Borra TODOS los pronósticos y resultados.</div><button class="btn-danger" onclick="resetAll()">Borrar todos los datos</button><div class="alert-ok hidden" id="resetOk">Datos reiniciados</div></div><div class="config-card"><h3>Limpiar pronósticos</h3><div class="alert-warn">Borra solo los pronósticos de los empleados. Los resultados se mantienen.</div><button class="btn-danger" id="btnResetPicks" onclick="resetPicks()" style="background:#ff9800">Borrar solo pronósticos</button><div class="alert-ok hidden" id="resetPicksOk">Pronósticos borrados</div></div><div class="config-card" id="aStats"></div></div>
     </main>
   </div>

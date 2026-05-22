@@ -87,6 +87,17 @@ async function dbResetAll() {
   }
 }
 
+async function dbLoadHorarios() {
+  try {
+    const rows = await sbFetch('prode?key=eq.horarios&select=value');
+    return rows && rows.length ? JSON.parse(rows[0].value) : {};
+  } catch(e) { return {}; }
+}
+
+async function dbSaveHorarios(h) {
+  await dbSet('horarios', JSON.stringify(h));
+}
+
 async function dbResetPicks() {
   try {
     const allPicks = await dbLoadAllPicks();
