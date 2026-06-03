@@ -109,3 +109,31 @@ async function dbResetPicks() {
     throw e;
   }
 }
+
+async function hashPass(raw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function dbGetEmpleadoPass(legajo) {
+  try {
+    const rows = await sbFetch(`prode?key=eq.empass:${encodeURIComponent(legajo)}&select=value`);
+    return rows && rows.length ? rows[0].value : null;
+  } catch(e) { return null; }
+}
+
+async function dbSetEmpleadoPass(legajo, password) {
+  const hashed = await hashPass(password);
+  await dbSet(`empass:${legajo}`, hashed);
+}
+
+async function dbValidateEmpleadoPass(legajo, password) {
+  const stored = await dbGetEmpleadoPass(legajo);
+  if (!stored) return false;
+  const hashed = await hashPass(password);
+  return stored === hashed;
+}
+
+async function dbDeleteEmpleadoPass(legajo) {
+  await sbFetch(`prode?key=eq.empass:${encodeURIComponent(legajo)}`, 'DELETE');
+}

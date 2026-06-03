@@ -45,11 +45,11 @@ function hideFifaTransition() {
 }
 
 function ini(n) { return String(n).slice(0, 2).toUpperCase(); }
-function show(id) { ['vLogin','vEmp','vAdm'].forEach(v => document.getElementById(v).classList.toggle('hidden', v !== id)); }
+function show(id) { ['vLogin','vEmp','vAdm','vNewPass'].forEach(v => document.getElementById(v).classList.toggle('hidden', v !== id)); }
 
 // ── LOGIN ──
-// Empleados: número de legajo (sin contraseña)
 // RR.HH.: usuario "Prode" + contraseña "RRHHpilar2026"
+// Empleados: número de legajo + contraseña personal (creada en primer acceso)
 const ADMIN_USER = 'Prode';
 const ADMIN_PASS_FIXED = 'RRHHpilar2026';
 
@@ -67,8 +67,8 @@ async function doLogin() {
 
   try {
     // Verificar si es admin
-    if (pas) {
-      if (usuario.toLowerCase() === ADMIN_USER.toLowerCase() && pas === ADMIN_PASS_FIXED) {
+    if (usuario.toLowerCase() === ADMIN_USER.toLowerCase()) {
+      if (pas === ADMIN_PASS_FIXED) {
         isAdm = true; cUser = ADMIN_USER;
         document.getElementById('aAv').textContent = 'RH';
         document.getElementById('aNom').textContent = 'Administrador';
@@ -77,11 +77,11 @@ async function doLogin() {
         setTimeout(hideFifaTransition, 1200);
       } else {
         hideFifaTransition();
-        err.textContent = 'Usuario o contraseña incorrectos'; err.classList.remove('hidden');
+        err.textContent = 'Contraseña incorrecta'; err.classList.remove('hidden');
         btn.disabled = false; btn.textContent = 'Entrar al Prode'; return;
       }
     } else {
-      // Empleado — validar legajo contra lista
+      // Empleado — validar legajo
       if (!/^\d+$/.test(usuario)) {
         hideFifaTransition();
         err.textContent = 'El legajo debe ser un número'; err.classList.remove('hidden');
@@ -93,23 +93,38 @@ async function doLogin() {
         err.textContent = 'Legajo no encontrado. Consultá con RR.HH.'; err.classList.remove('hidden');
         btn.disabled = false; btn.textContent = 'Entrar al Prode'; return;
       }
-      isAdm = false; cUser = usuario;
-      lPicks = await dbLoadPicks(usuario);
-      lHorarios = await dbLoadHorarios();
-      // Formatear nombre: "FERNANDEZ LUCIO" → "Lucio Fernandez"
-      const partes = nombreEmpleado.split(' ');
-      const apellido = partes[0];
-      const nombre = partes.slice(1).join(' ') || apellido;
-      const nombreFormateado = (nombre + ' ' + apellido).split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
-      document.getElementById('eAv').textContent = nombreFormateado.split(' ').map(w=>w[0]).join('').slice(0,2);
-      document.getElementById('eNom').textContent = nombreFormateado;
-      show('vEmp');
-      semanaVista = semanaActual();
-      renderEmpleado();
-      updEmpStats();
-      setTimeout(hideFifaTransition, 1200);
+
+      // Verificar si tiene contraseña guardada
+      const tienePass = await dbGetEmpleadoPass(usuario);
+
+      if (!tienePass) {
+        // Primer acceso — ir a crear contraseña
+        hideFifaTransition();
+        document.getElementById('newPassLegajo').textContent = `Legajo: ${usuario}`;
+        document.getElementById('iNewPass1').value = '';
+        document.getElementById('iNewPass2').value = '';
+        document.getElementById('newPassErr').classList.add('hidden');
+        show('vNewPass');
+        window.tempLegajo = usuario;
+      } else if (pas) {
+        // Validar contraseña
+        const esValida = await dbValidateEmpleadoPass(usuario, pas);
+        if (!esValida) {
+          hideFifaTransition();
+          err.textContent = 'Contraseña incorrecta'; err.classList.remove('hidden');
+          btn.disabled = false; btn.textContent = 'Entrar al Prode'; return;
+        }
+        // Contraseña correcta — entrar
+        await loginEmpleado(usuario, nombreEmpleado);
+        setTimeout(hideFifaTransition, 1200);
+      } else {
+        hideFifaTransition();
+        err.textContent = 'Ingresá tu contraseña'; err.classList.remove('hidden');
+        btn.disabled = false; btn.textContent = 'Entrar al Prode'; return;
+      }
     }
   } catch(e) {
+    console.error(e);
     hideFifaTransition();
     err.textContent = 'Error de conexión. Intentá de nuevo.';
     err.classList.remove('hidden');
@@ -117,8 +132,71 @@ async function doLogin() {
   btn.disabled = false; btn.textContent = 'Entrar al Prode';
 }
 
+async function loginEmpleado(legajo, nombreEmpleado) {
+  isAdm = false; cUser = legajo;
+  lPicks = await dbLoadPicks(legajo);
+  lHorarios = await dbLoadHorarios();
+  const partes = nombreEmpleado.split(' ');
+  const apellido = partes[0];
+  const nombre = partes.slice(1).join(' ') || apellido;
+  const nombreFormateado = (nombre + ' ' + apellido).split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+  document.getElementById('eAv').textContent = nombreFormateado.split(' ').map(w=>w[0]).join('').slice(0,2);
+  document.getElementById('eNom').textContent = nombreFormateado;
+  show('vEmp');
+  semanaVista = semanaActual();
+  renderEmpleado();
+  updEmpStats();
+}
+
+async function doCreatePass() {
+  const pass1 = document.getElementById('iNewPass1').value;
+  const pass2 = document.getElementById('iNewPass2').value;
+  const err = document.getElementById('newPassErr');
+  err.classList.add('hidden');
+
+  if (!pass1) { err.textContent = 'Ingresá una contraseña'; err.classList.remove('hidden'); return; }
+  if (pass1.length < 6) { err.textContent = 'La contraseña debe tener mínimo 6 caracteres'; err.classList.remove('hidden'); return; }
+  if (pass1 !== pass2) { err.textContent = 'Las contraseñas no coinciden'; err.classList.remove('hidden'); return; }
+
+  const btn = document.getElementById('btnCreatePass');
+  btn.disabled = true; btn.textContent = 'Creando...';
+  showFifaTransition();
+
+  try {
+    const legajo = window.tempLegajo;
+    await dbSetEmpleadoPass(legajo, pass1);
+
+    const nombreEmpleado = EMPLEADOS[legajo];
+    await loginEmpleado(legajo, nombreEmpleado);
+    setTimeout(hideFifaTransition, 1200);
+  } catch(e) {
+    console.error(e);
+    hideFifaTransition();
+    err.textContent = 'Error al crear contraseña. Intentá de nuevo.';
+    err.classList.remove('hidden');
+  }
+  btn.disabled = false; btn.textContent = 'Crear contraseña';
+}
+
+function toggleNewPass1() { const i=document.getElementById('iNewPass1'); i.type=i.type==='password'?'text':'password'; }
+function toggleNewPass2() { const i=document.getElementById('iNewPass2'); i.type=i.type==='password'?'text':'password'; }
+
+async function adminResetPass() {
+  const legajo = document.getElementById('resetPassLegajo').value.trim();
+  const okEl = document.getElementById('resetPassOk');
+  const errEl = document.getElementById('resetPassErr');
+  okEl.classList.add('hidden'); errEl.classList.add('hidden');
+  if (!legajo) { errEl.textContent='Ingresá un legajo'; errEl.classList.remove('hidden'); return; }
+  if (!EMPLEADOS[legajo]) { errEl.textContent='Legajo no encontrado'; errEl.classList.remove('hidden'); return; }
+  await dbDeleteEmpleadoPass(legajo);
+  document.getElementById('resetPassLegajo').value = '';
+  okEl.textContent = `✓ Contraseña de legajo ${legajo} reseteada. El empleado deberá crear una nueva al ingresar.`;
+  okEl.classList.remove('hidden');
+}
+
 function doLogout() {
   cUser = null; isAdm = false; lPicks = {}; lRes = {}; allPicks = {};
+  window.tempLegajo = null;
   document.getElementById('iNom').value = '';
   document.getElementById('iPass').value = '';
   show('vLogin');
