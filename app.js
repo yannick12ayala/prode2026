@@ -5,7 +5,7 @@ let lHorarios = {};
 let chartDist = null;
 let semanaVista = null;
 
-// ── Bloqueo por horario (1h antes del partido) ──
+// ── Bloqueo por horario (5 min antes del partido) ──
 function parseFechaPartido(f, h) {
   const meses = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};
   const [dia, mes] = f.trim().split(' ');
@@ -877,23 +877,58 @@ async function renderHorariosAdm() {
   const wrap = document.getElementById('aHorariosWrap');
   wrap.innerHTML = '<p style="color:var(--text3);padding:1rem">Cargando…</p>';
   const hor = await dbLoadHorarios();
-  let html = '';
+  lHorarios = hor; // fix: sincronizar variable global para admin
+
+  const cargados = Object.keys(hor).length;
+  const total = TODOS.length;
+
+  let html = `<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+    <input type="text" id="srchHor" placeholder="Buscar equipo o fecha…" oninput="filtrarHorarios()"
+      style="flex:1;min-width:200px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 14px;color:var(--text);font-size:13px"/>
+    <span style="font-size:12px;color:var(--text3);white-space:nowrap"><b style="color:${cargados===total?'var(--ok)':'var(--gold)'}">${cargados}</b> / ${total} horarios cargados</span>
+  </div>
+  <div id="horList">`;
+
   SEMANAS.forEach(s => {
     const partidos = TODOS.filter(p => p.semana === s.id);
-    html += `<div class="config-card">
-      <h3>Semana ${s.id} — ${s.label}</h3>`;
+    html += `<div class="config-card hor-semana">
+      <h3 style="display:flex;align-items:center;justify-content:space-between">
+        <span>Semana ${s.id} — ${s.label}</span>
+        <span style="font-size:11px;font-weight:400;color:var(--text3)">${partidos.filter(p=>hor[p.id]).length}/${partidos.length} cargados</span>
+      </h3>`;
     partidos.forEach(p => {
       const val = hor[p.id] || '';
       const locked = val && esPartidoBloqueado(p);
-      html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-        <div style="flex:1;font-size:13px;color:${locked ? 'var(--text3)' : 'var(--text)'}">${p.f} · ${p.loc} vs ${p.vis}${locked ? ' 🔒' : ''}</div>
-        <input type="time" class="hor-input" data-id="${p.id}" value="${val}"
-          style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);padding:5px 8px;font-size:13px;font-family:inherit;width:110px;color-scheme:dark"/>
+      const tienHor = !!val;
+      html += `<div class="hor-row" data-search="${p.f} ${p.loc} ${p.vis}".toLowerCase()>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+          <span style="font-size:10px;font-weight:700;color:var(--text3);min-width:28px">#${p.id}</span>
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:600;color:${locked?'var(--text3)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.loc} <span style="color:var(--text3)">vs</span> ${p.vis}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">${p.f}${locked?' · 🔒 Bloqueado':''}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <input type="time" class="hor-input" data-id="${p.id}" value="${val}"
+            style="background:${tienHor?'rgba(74,222,128,.08)':'rgba(255,255,255,.05)'};border:1px solid ${tienHor?'rgba(74,222,128,.3)':'var(--border2)'};border-radius:var(--r);color:var(--text);padding:6px 10px;font-size:14px;font-family:inherit;width:120px;color-scheme:dark"
+            oninput="this.style.background='rgba(74,222,128,.08)';this.style.borderColor='rgba(74,222,128,.3)'"/>
+          ${val ? `<span style="color:#4ade80;font-size:16px" title="Horario cargado">✓</span>` : `<span style="color:var(--text3);font-size:16px" title="Sin horario">○</span>`}
+        </div>
       </div>`;
     });
     html += `</div>`;
   });
+
+  html += `</div>`;
   wrap.innerHTML = html;
+}
+
+function filtrarHorarios() {
+  const q = document.getElementById('srchHor').value.toLowerCase();
+  document.querySelectorAll('.hor-row').forEach(row => {
+    const txt = row.querySelector('[data-search]')?.getAttribute('data-search') || row.textContent.toLowerCase();
+    row.style.display = txt.includes(q) ? '' : 'none';
+  });
 }
 
 async function guardarHorarios() {

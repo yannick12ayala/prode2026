@@ -380,6 +380,9 @@ button { cursor:pointer; }
 
 .rk-clickable { cursor:pointer; }
 .rk-clickable:hover { background:rgba(79,163,224,.12); border-radius:6px; }
+.hor-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);transition:background .15s}
+.hor-row:last-child{border-bottom:none}
+.hor-row:hover{background:rgba(255,255,255,.03);border-radius:6px;padding-left:6px}
 
 /* ── Partidos bloqueados por horario ── */
 .match-locked { opacity:.65; }
