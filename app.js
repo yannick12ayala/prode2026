@@ -2,6 +2,7 @@
 let cUser = null, isAdm = false;
 let lPicks = {}, lRes = {}, allPicks = {};
 let lHorarios = {};
+let lFechas = {};
 let chartDist = null;
 let semanaVista = null;
 
@@ -14,17 +15,30 @@ function parseFechaPartido(f, h) {
   const [hh, mm] = h.split(':').map(Number);
   return new Date(2026, m - 1, parseInt(dia), hh, mm, 0);
 }
+function fechaEfectiva(p) { return lFechas[p.id] || p.f; }
+function fechaDDMMMtoISO(f) {
+  const meses = {ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06',jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12'};
+  const [dia, mes] = f.trim().toLowerCase().split(' ');
+  const m = meses[mes]; if (!m) return '';
+  return `2026-${m}-${String(parseInt(dia)).padStart(2,'0')}`;
+}
+function fechaISOtoDDMMM(iso) {
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const [,, mm, dd] = iso.match(/(\d{4})-(\d{2})-(\d{2})/) || [];
+  if (!mm) return '';
+  return `${parseInt(dd)} ${meses[parseInt(mm)-1]}`;
+}
 function esPartidoBloqueado(p) {
   const h = lHorarios[p.id];
   if (!h) return false;
-  const inicio = parseFechaPartido(p.f, h);
+  const inicio = parseFechaPartido(fechaEfectiva(p), h);
   if (!inicio) return false;
   return Date.now() >= inicio.getTime() - 5 * 60 * 1000;
 }
 function minutosParaBloqueo(p) {
   const h = lHorarios[p.id];
   if (!h) return null;
-  const inicio = parseFechaPartido(p.f, h);
+  const inicio = parseFechaPartido(fechaEfectiva(p), h);
   if (!inicio) return null;
   return Math.ceil((inicio.getTime() - 5 * 60 * 1000 - Date.now()) / 60000);
 }
@@ -136,6 +150,7 @@ async function loginEmpleado(legajo, nombreEmpleado) {
   isAdm = false; cUser = legajo;
   lPicks = await dbLoadPicks(legajo);
   lHorarios = await dbLoadHorarios();
+  lFechas = await dbLoadFechas();
   const partes = nombreEmpleado.split(' ');
   const apellido = partes[0];
   const nombre = partes.slice(1).join(' ') || apellido;
@@ -877,7 +892,9 @@ async function renderHorariosAdm() {
   const wrap = document.getElementById('aHorariosWrap');
   wrap.innerHTML = '<p style="color:var(--text3);padding:1rem">Cargando…</p>';
   const hor = await dbLoadHorarios();
-  lHorarios = hor; // fix: sincronizar variable global para admin
+  const fec = await dbLoadFechas();
+  lHorarios = hor;
+  lFechas = fec;
 
   const cargados = Object.keys(hor).length;
   const total = TODOS.length;
@@ -898,19 +915,25 @@ async function renderHorariosAdm() {
       </h3>`;
     partidos.forEach(p => {
       const val = hor[p.id] || '';
+      const fechaActual = fec[p.id] || p.f;
       const locked = val && esPartidoBloqueado(p);
       const tienHor = !!val;
-      html += `<div class="hor-row" data-search="${p.f} ${p.loc} ${p.vis}".toLowerCase()>
+      const tienFecha = !!fec[p.id];
+      const isoFecha = fechaDDMMMtoISO(fechaActual);
+      html += `<div class="hor-row" data-search="${p.f} ${p.loc} ${p.vis}">
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
           <span style="font-size:10px;font-weight:700;color:var(--text3);min-width:28px">#${p.id}</span>
           <div style="min-width:0">
             <div style="font-size:13px;font-weight:600;color:${locked?'var(--text3)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.loc} <span style="color:var(--text3)">vs</span> ${p.vis}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:1px">${p.f}${locked?' · 🔒 Bloqueado':''}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">Fecha base: ${p.f}${tienFecha?' · <span style="color:#4ade80">✎ modificada</span>':''}${locked?' · 🔒 Bloqueado':''}</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <input type="date" class="fecha-input" data-id="${p.id}" value="${isoFecha}"
+            style="background:${tienFecha?'rgba(74,222,128,.08)':'rgba(255,255,255,.05)'};border:1px solid ${tienFecha?'rgba(74,222,128,.3)':'var(--border2)'};border-radius:var(--r);color:var(--text);padding:6px 8px;font-size:13px;font-family:inherit;width:140px;color-scheme:dark"
+            oninput="this.style.background='rgba(74,222,128,.08)';this.style.borderColor='rgba(74,222,128,.3)'"/>
           <input type="time" class="hor-input" data-id="${p.id}" value="${val}"
-            style="background:${tienHor?'rgba(74,222,128,.08)':'rgba(255,255,255,.05)'};border:1px solid ${tienHor?'rgba(74,222,128,.3)':'var(--border2)'};border-radius:var(--r);color:var(--text);padding:6px 10px;font-size:14px;font-family:inherit;width:120px;color-scheme:dark"
+            style="background:${tienHor?'rgba(74,222,128,.08)':'rgba(255,255,255,.05)'};border:1px solid ${tienHor?'rgba(74,222,128,.3)':'var(--border2)'};border-radius:var(--r);color:var(--text);padding:6px 10px;font-size:14px;font-family:inherit;width:110px;color-scheme:dark"
             oninput="this.style.background='rgba(74,222,128,.08)';this.style.borderColor='rgba(74,222,128,.3)'"/>
           ${val ? `<span style="color:#4ade80;font-size:16px" title="Horario cargado">✓</span>` : `<span style="color:var(--text3);font-size:16px" title="Sin horario">○</span>`}
         </div>
@@ -938,7 +961,16 @@ async function guardarHorarios() {
   document.querySelectorAll('.hor-input').forEach(inp => {
     if (inp.value) horarios[inp.dataset.id] = inp.value;
   });
-  await dbSaveHorarios(horarios);
+  // Guardar fechas modificadas (solo las que difieren de data.js)
+  const fechas = {};
+  document.querySelectorAll('.fecha-input').forEach(inp => {
+    if (!inp.value) return;
+    const partido = TODOS.find(p => String(p.id) === String(inp.dataset.id));
+    const fechaConvertida = fechaISOtoDDMMM(inp.value);
+    if (partido && fechaConvertida !== partido.f) fechas[inp.dataset.id] = fechaConvertida;
+  });
+  await Promise.all([dbSaveHorarios(horarios), dbSaveFechas(fechas)]);
+  lHorarios = horarios; lFechas = fechas;
   const ok = document.getElementById('horariosOk');
   ok.classList.remove('hidden');
   setTimeout(() => ok.classList.add('hidden'), 3000);

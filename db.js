@@ -98,6 +98,17 @@ async function dbSaveHorarios(h) {
   await dbSet('horarios', JSON.stringify(h));
 }
 
+async function dbLoadFechas() {
+  try {
+    const rows = await sbFetch('prode?key=eq.fechas&select=value');
+    return rows && rows.length ? JSON.parse(rows[0].value) : {};
+  } catch(e) { return {}; }
+}
+
+async function dbSaveFechas(f) {
+  await dbSet('fechas', JSON.stringify(f));
+}
+
 async function dbResetPicks() {
   try {
     const allPicks = await dbLoadAllPicks();
