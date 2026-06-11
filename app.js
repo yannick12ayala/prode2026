@@ -280,7 +280,7 @@ function matchRowEmp(p) {
   }
 
   return `<div class="match-row ${bloqueado ? 'match-locked' : ''}" data-mid="${p.id}">
-    <div class="match-date">${p.f}</div>
+    <div class="match-date">${fechaEfectiva(p)}</div>
     <div class="match-team match-team-loc">${p.loc}</div>
     ${scoreHtml}
     <div class="match-team match-team-vis">${p.vis}</div>
@@ -707,7 +707,7 @@ async function renderPicksAdm() {
     const r = lRes[p.id];
     h += `<div class="pick-detail-item">
       <div class="pick-detail-match">${p.loc} vs ${p.vis}
-        <span class="pick-detail-meta">${p.f} · ${p.g ? 'Grupo ' + p.g : p.r}</span>
+        <span class="pick-detail-meta">${fechaEfectiva(p)} · ${p.g ? 'Grupo ' + p.g : p.r}</span>
         ${r ? `<span class="score-real">${r.l}-${r.v}</span>` : ''}
       </div>
       <div class="pick-detail-chips">`;
@@ -756,7 +756,7 @@ async function renderResAdmin() {
 
       h += `<div style="background:${bg};border-radius:8px;padding:1.25rem;margin-bottom:${idx < partidos.length - 1 ? '1rem' : '0'};display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;transition:all .2s;border:1px solid transparent" onmouseover="this.style.background='rgba(255,255,255,.06)';this.style.borderColor='var(--border)'" onmouseout="this.style.background='${bg}';this.style.borderColor='transparent'">
         <div style="display:flex;flex-direction:column;gap:4px;min-width:100px">
-          <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);letter-spacing:.05em">${p.f}</div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);letter-spacing:.05em">${fechaEfectiva(p)}</div>
           <div style="font-size:11px;color:var(--text2)">${p.g ? 'Grupo ' + p.g : p.r}</div>
         </div>
 
