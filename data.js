@@ -2,7 +2,7 @@
 const SEMANAS = [
   { id:1, label:'Grupos · Fecha 1',  desde:'2026-06-11' },
   { id:2, label:'Grupos · Fecha 2',  desde:'2026-06-17' },
-  { id:3, label:'Grupos · Fecha 3',  desde:'2026-06-25' },
+  { id:3, label:'Grupos · Fecha 3',  desde:'2026-06-23' },
   { id:4, label:'16avos y Octavos',  desde:'2026-07-02' },
   { id:5, label:'Cuartos y Semis',   desde:'2026-07-09' },
   { id:6, label:'Final',              desde:'2026-07-16' },
