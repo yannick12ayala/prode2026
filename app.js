@@ -3,8 +3,13 @@ let cUser = null, isAdm = false;
 let lPicks = {}, lRes = {}, allPicks = {};
 let lHorarios = {};
 let lFechas = {};
+let lCruces = {};
 let chartDist = null;
 let semanaVista = null;
+
+// ── Equipos de fase eliminatoria (cruces cargados a mano) ──
+function equipoLoc(p) { return (lCruces[p.id] && lCruces[p.id].loc) || p.loc; }
+function equipoVis(p) { return (lCruces[p.id] && lCruces[p.id].vis) || p.vis; }
 
 // ── Bloqueo por horario (5 min antes del partido) ──
 function parseFechaPartido(f, h) {
@@ -151,6 +156,7 @@ async function loginEmpleado(legajo, nombreEmpleado) {
   lPicks = await dbLoadPicks(legajo);
   lHorarios = await dbLoadHorarios();
   lFechas = await dbLoadFechas();
+  lCruces = await dbLoadCruces();
   const partes = nombreEmpleado.split(' ');
   const apellido = partes[0];
   const nombre = partes.slice(1).join(' ') || apellido;
@@ -281,9 +287,9 @@ function matchRowEmp(p) {
 
   return `<div class="match-row ${bloqueado ? 'match-locked' : ''}" data-mid="${p.id}">
     <div class="match-date">${fechaEfectiva(p)}</div>
-    <div class="match-team match-team-loc">${p.loc}</div>
+    <div class="match-team match-team-loc">${equipoLoc(p)}</div>
     ${scoreHtml}
-    <div class="match-team match-team-vis">${p.vis}</div>
+    <div class="match-team match-team-vis">${equipoVis(p)}</div>
   </div>`;
 }
 
@@ -665,7 +671,7 @@ function renderDetallesParticipante(legajo) {
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.75rem">
           <div>
             <div style="font-size:13px;color:var(--text2);margin-bottom:0.25rem">${a.partido.f} ${a.partido.semana ? '· Sem. ' + a.partido.semana : ''}</div>
-            <div style="font-size:15px;font-weight:600;color:var(--text)">${a.partido.loc} <span style="color:var(--text3)">vs</span> ${a.partido.vis}</div>
+            <div style="font-size:15px;font-weight:600;color:var(--text)">${equipoLoc(a.partido)} <span style="color:var(--text3)">vs</span> ${equipoVis(a.partido)}</div>
           </div>
           <div style="background:${badgeBg};color:${badgeColor};padding:4px 10px;border-radius:4px;font-weight:600;font-size:12px;white-space:nowrap">+${a.pts} ${a.pts === 3 ? 'pts exacto' : 'pt resultado'}</div>
         </div>
@@ -697,7 +703,7 @@ async function renderPicksAdm() {
     lRes = await dbLoadResults();
   }
   const users = Object.keys(allPicks);
-  const ps = TODOS.filter(p => !q || (p.loc + ' ' + p.vis + (p.g || p.r || '')).toLowerCase().includes(q));
+  const ps = TODOS.filter(p => !q || (equipoLoc(p) + ' ' + equipoVis(p) + (p.g || p.r || '')).toLowerCase().includes(q));
   if (!ps.length) {
     document.getElementById('aPicks').innerHTML = '<p style="font-size:12px;color:#6b6a65;padding:1rem">Sin resultados</p>';
     return;
@@ -706,7 +712,7 @@ async function renderPicksAdm() {
   ps.slice(0, 25).forEach(p => {
     const r = lRes[p.id];
     h += `<div class="pick-detail-item">
-      <div class="pick-detail-match">${p.loc} vs ${p.vis}
+      <div class="pick-detail-match">${equipoLoc(p)} vs ${equipoVis(p)}
         <span class="pick-detail-meta">${fechaEfectiva(p)} · ${p.g ? 'Grupo ' + p.g : p.r}</span>
         ${r ? `<span class="score-real">${r.l}-${r.v}</span>` : ''}
       </div>
@@ -763,7 +769,7 @@ async function renderResAdmin() {
         <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center">
           <div style="text-align:right">
             <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Local</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text)">${p.loc}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${equipoLoc(p)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-direction:column">
             <input type="number" min="0" max="20" placeholder="–" value="${vL}" oninput="setResGol('${p.id}','l',this.value)" onchange="setResGol('${p.id}','l',this.value)" style="width:50px;height:50px;font-size:24px;font-weight:700;text-align:center;border:2px solid var(--border2);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:0;outline:none;transition:all .2s" onfocus="this.style.borderColor='var(--fifa-sky)';this.style.boxShadow='0 0 0 3px rgba(79,163,224,.2)'"/>
@@ -772,7 +778,7 @@ async function renderResAdmin() {
           </div>
           <div style="text-align:left">
             <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Visitante</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text)">${p.vis}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${equipoVis(p)}</div>
           </div>
         </div>
 
@@ -893,8 +899,10 @@ async function renderHorariosAdm() {
   wrap.innerHTML = '<p style="color:var(--text3);padding:1rem">Cargando…</p>';
   const hor = await dbLoadHorarios();
   const fec = await dbLoadFechas();
+  const cru = await dbLoadCruces();
   lHorarios = hor;
   lFechas = fec;
+  lCruces = cru;
 
   const cargados = Object.keys(hor).length;
   const total = TODOS.length;
@@ -920,14 +928,26 @@ async function renderHorariosAdm() {
       const tienHor = !!val;
       const tienFecha = !!fec[p.id];
       const isoFecha = fechaDDMMMtoISO(fechaActual);
-      html += `<div class="hor-row" data-search="${p.f} ${p.loc} ${p.vis}">
+      const esElim = !!p.r;
+      const cr = cru[p.id] || {};
+      const tieneCruce = !!(cr.loc || cr.vis);
+      html += `<div class="hor-row" style="${esElim ? 'flex-direction:column;align-items:stretch;gap:10px' : ''}" data-search="${p.f} ${equipoLoc(p)} ${equipoVis(p)} ${p.loc} ${p.vis}">
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
           <span style="font-size:10px;font-weight:700;color:var(--text3);min-width:28px">#${p.id}</span>
           <div style="min-width:0">
-            <div style="font-size:13px;font-weight:600;color:${locked?'var(--text3)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.loc} <span style="color:var(--text3)">vs</span> ${p.vis}</div>
+            <div style="font-size:13px;font-weight:600;color:${locked?'var(--text3)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${equipoLoc(p)} <span style="color:var(--text3)">vs</span> ${equipoVis(p)}</div>
             <div style="font-size:11px;color:var(--text3);margin-top:1px">Fecha base: ${p.f}${tienFecha?' · <span style="color:#4ade80">✎ modificada</span>':''}${locked?' · 🔒 Bloqueado':''}</div>
           </div>
         </div>
+        ${esElim ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <input type="text" class="cruce-loc-input" data-id="${p.id}" placeholder="${p.loc}" value="${cr.loc || ''}"
+            style="flex:1;min-width:140px;background:${tieneCruce?'rgba(74,222,128,.08)':'rgba(255,255,255,.05)'};border:1px solid ${tieneCruce?'rgba(74,222,128,.3)':'var(--border2)'};border-radius:var(--r);color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit"
+            oninput="this.style.background='rgba(74,222,128,.08)';this.style.borderColor='rgba(74,222,128,.3)'"/>
+          <span style="font-size:11px;color:var(--text3)">vs</span>
+          <input type="text" class="cruce-vis-input" data-id="${p.id}" placeholder="${p.vis}" value="${cr.vis || ''}"
+            style="flex:1;min-width:140px;background:${tieneCruce?'rgba(74,222,128,.08)':'rgba(255,255,255,.05)'};border:1px solid ${tieneCruce?'rgba(74,222,128,.3)':'var(--border2)'};border-radius:var(--r);color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit"
+            oninput="this.style.background='rgba(74,222,128,.08)';this.style.borderColor='rgba(74,222,128,.3)'"/>
+        </div>` : ''}
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           <input type="date" class="fecha-input" data-id="${p.id}" value="${isoFecha}"
             style="background:${tienFecha?'rgba(74,222,128,.08)':'rgba(255,255,255,.05)'};border:1px solid ${tienFecha?'rgba(74,222,128,.3)':'var(--border2)'};border-radius:var(--r);color:var(--text);padding:6px 8px;font-size:13px;font-family:inherit;width:140px;color-scheme:dark"
@@ -969,8 +989,17 @@ async function guardarHorarios() {
     const fechaConvertida = fechaISOtoDDMMM(inp.value);
     if (partido && fechaConvertida !== partido.f) fechas[inp.dataset.id] = fechaConvertida;
   });
-  await Promise.all([dbSaveHorarios(horarios), dbSaveFechas(fechas)]);
-  lHorarios = horarios; lFechas = fechas;
+  // Guardar cruces (nombres de equipos) de fase eliminatoria cargados a mano
+  const cruces = {};
+  document.querySelectorAll('.cruce-loc-input').forEach(inp => {
+    const id = inp.dataset.id;
+    const visInp = document.querySelector(`.cruce-vis-input[data-id="${id}"]`);
+    const loc = inp.value.trim();
+    const vis = visInp ? visInp.value.trim() : '';
+    if (loc || vis) cruces[id] = { loc: loc || undefined, vis: vis || undefined };
+  });
+  await Promise.all([dbSaveHorarios(horarios), dbSaveFechas(fechas), dbSaveCruces(cruces)]);
+  lHorarios = horarios; lFechas = fechas; lCruces = cruces;
   const ok = document.getElementById('horariosOk');
   ok.classList.remove('hidden');
   setTimeout(() => ok.classList.add('hidden'), 3000);

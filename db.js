@@ -109,6 +109,17 @@ async function dbSaveFechas(f) {
   await dbSet('fechas', JSON.stringify(f));
 }
 
+async function dbLoadCruces() {
+  try {
+    const rows = await sbFetch('prode?key=eq.cruces&select=value');
+    return rows && rows.length ? JSON.parse(rows[0].value) : {};
+  } catch(e) { return {}; }
+}
+
+async function dbSaveCruces(c) {
+  await dbSet('cruces', JSON.stringify(c));
+}
+
 async function dbResetPicks() {
   try {
     const allPicks = await dbLoadAllPicks();
