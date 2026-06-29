@@ -739,20 +739,27 @@ async function renderPicksAdm() {
 async function renderResAdmin() {
   lRes = await dbLoadResults();
 
-  let h = '<div style="display:grid;gap:2rem">';
+  let h = '<div style="display:grid;gap:1rem">';
   const colors = ['#1a3a8a', '#c4161c', '#00a651', '#f26522', '#4fa3e0', '#6d2077'];
+  const actual = semanaActual();
 
   // Por semana
   for (const sem of SEMANAS) {
     const partidos = TODOS.filter(p => p.semana === sem.id);
     if (!partidos.length) continue;
 
+    const cargados = partidos.filter(p => { const r = lRes[p.id]; return r && r.l != null && r.v != null; }).length;
+    const abierta = sem.id === actual;
     const color = colors[(sem.id - 1) % colors.length];
     h += `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;border-left:4px solid ${color}">
-      <div style="background:${color};color:#fff;padding:14px 18px">
+      <div style="background:${color};color:#fff;padding:14px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:1rem" onclick="toggleResSemana(${sem.id})">
         <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Semana ${sem.id} · ${sem.label}</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <span style="font-size:11px;font-weight:600;background:rgba(255,255,255,.2);padding:3px 9px;border-radius:99px;white-space:nowrap">${cargados}/${partidos.length} cargados</span>
+          <span id="resChev${sem.id}" style="font-size:14px;transition:transform .2s">${abierta ? '▾' : '▸'}</span>
+        </div>
       </div>
-      <div style="padding:1rem">`;
+      <div id="resCont${sem.id}" class="${abierta ? '' : 'hidden'}" style="padding:1rem">`;
 
     partidos.forEach((p, idx) => {
       const r = lRes[p.id] || { l: null, v: null };
@@ -794,6 +801,15 @@ async function renderResAdmin() {
 
   h += '</div>';
   document.getElementById('aResWrap').innerHTML = h;
+}
+
+function toggleResSemana(id) {
+  const cont = document.getElementById(`resCont${id}`);
+  const chev = document.getElementById(`resChev${id}`);
+  if (!cont) return;
+  const seVaAAbrir = cont.classList.contains('hidden');
+  cont.classList.toggle('hidden');
+  if (chev) chev.textContent = seVaAAbrir ? '▾' : '▸';
 }
 
 function setResGol(mid, lado, valor) {
