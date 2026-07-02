@@ -383,7 +383,7 @@ async function mostrarRankingEmp(btnEl) {
 
   const allP = await dbLoadAllPicks();
   const res = await dbLoadResults();
-  const users = Object.keys(allP);
+  const users = legajosActivos(allP);
   const hayRes = Object.keys(res).length > 0;
 
   const sc = users.map(u => ({
@@ -453,6 +453,11 @@ async function mostrarRankingEmp(btnEl) {
   container.innerHTML = html;
 }
 
+// Filtra legajos huérfanos (empleados eliminados cuya clave sigue en Supabase)
+function legajosActivos(picks) {
+  return Object.keys(picks).filter(u => !!EMPLEADOS[u]);
+}
+
 // ── ADMIN ──
 function calcPtsUsuario(picks, res) {
   let total = 0;
@@ -485,7 +490,7 @@ function inicialesDisplay(legajo) {
 async function renderResumen() {
   allPicks = await dbLoadAllPicks();
   lRes = await dbLoadResults();
-  const users = Object.keys(allPicks);
+  const users = legajosActivos(allPicks);
   const totalPicks = users.reduce((s, u) => s + Object.keys(allPicks[u]).length, 0);
   const totalPts = users.reduce((s, u) => s + (calcPtsUsuario(allPicks[u], lRes) || 0), 0);
   const resCount = Object.keys(lRes).length;
@@ -596,7 +601,7 @@ function renderChart() {
 async function renderRanking() {
   allPicks = await dbLoadAllPicks();
   lRes = await dbLoadResults();
-  const users = Object.keys(allPicks);
+  const users = legajosActivos(allPicks);
   const hayRes = Object.keys(lRes).length > 0;
   if (!users.length) {
     document.getElementById('aRanking').innerHTML = '<p style="padding:1rem;color:#6b6a65;font-size:13px">Sin participantes aún</p>';
@@ -707,7 +712,7 @@ async function renderPicksAdm() {
     allPicks = await dbLoadAllPicks();
     lRes = await dbLoadResults();
   }
-  const users = Object.keys(allPicks);
+  const users = legajosActivos(allPicks);
   const ps = TODOS.filter(p => !q || (equipoLoc(p) + ' ' + equipoVis(p) + (p.g || p.r || '')).toLowerCase().includes(q));
   if (!ps.length) {
     document.getElementById('aPicks').innerHTML = '<p style="font-size:12px;color:#6b6a65;padding:1rem">Sin resultados</p>';
