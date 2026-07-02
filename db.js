@@ -120,6 +120,17 @@ async function dbSaveCruces(c) {
   await dbSet('cruces', JSON.stringify(c));
 }
 
+async function dbGetServerTime() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/prode?key=eq.__servertime__&select=key&limit=1`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const dateHeader = res.headers.get('Date');
+    if (dateHeader) return new Date(dateHeader).getTime();
+    return Date.now();
+  } catch(e) { return Date.now(); }
+}
+
 async function dbResetPicks() {
   try {
     const allPicks = await dbLoadAllPicks();

@@ -6,10 +6,14 @@ let lFechas = {};
 let lCruces = {};
 let chartDist = null;
 let semanaVista = null;
+let timeOffset = 0; // diferencia entre hora del servidor y reloj del dispositivo
 
 // ── Equipos de fase eliminatoria (cruces cargados a mano) ──
 function equipoLoc(p) { return (lCruces[p.id] && lCruces[p.id].loc) || p.loc; }
 function equipoVis(p) { return (lCruces[p.id] && lCruces[p.id].vis) || p.vis; }
+
+// Usa la hora del servidor para evitar manipulación del reloj del dispositivo
+function serverNow() { return Date.now() + timeOffset; }
 
 // ── Bloqueo por horario (5 min antes del partido) ──
 function parseFechaPartido(f, h) {
@@ -38,14 +42,14 @@ function esPartidoBloqueado(p) {
   if (!h) return false;
   const inicio = parseFechaPartido(fechaEfectiva(p), h);
   if (!inicio) return false;
-  return Date.now() >= inicio.getTime() - 5 * 60 * 1000;
+  return serverNow() >= inicio.getTime() - 5 * 60 * 1000;
 }
 function minutosParaBloqueo(p) {
   const h = lHorarios[p.id];
   if (!h) return null;
   const inicio = parseFechaPartido(fechaEfectiva(p), h);
   if (!inicio) return null;
-  return Math.ceil((inicio.getTime() - 5 * 60 * 1000 - Date.now()) / 60000);
+  return Math.ceil((inicio.getTime() - 5 * 60 * 1000 - serverNow()) / 60000);
 }
 
 // ── Transición FIFA ──
@@ -153,10 +157,11 @@ async function doLogin() {
 
 async function loginEmpleado(legajo, nombreEmpleado) {
   isAdm = false; cUser = legajo;
-  lPicks = await dbLoadPicks(legajo);
-  lHorarios = await dbLoadHorarios();
-  lFechas = await dbLoadFechas();
-  lCruces = await dbLoadCruces();
+  const [picks, horarios, fechas, cruces, serverT] = await Promise.all([
+    dbLoadPicks(legajo), dbLoadHorarios(), dbLoadFechas(), dbLoadCruces(), dbGetServerTime()
+  ]);
+  timeOffset = serverT - Date.now();
+  lPicks = picks; lHorarios = horarios; lFechas = fechas; lCruces = cruces;
   const partes = nombreEmpleado.split(' ');
   const apellido = partes[0];
   const nombre = partes.slice(1).join(' ') || apellido;
