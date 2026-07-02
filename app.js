@@ -251,18 +251,35 @@ async function empGuardar() {
   const btn = document.getElementById('btnEGuardar');
   btn.disabled = true; btn.textContent = 'Guardando...';
   try {
-    // Limpiar picks vacíos antes de guardar
+    // Refrescar horarios y hora del servidor antes de validar (protege contra tabs viejas)
+    const [hor, fec, serverT, dbPicks] = await Promise.all([
+      dbLoadHorarios(), dbLoadFechas(), dbGetServerTime(), dbLoadPicks(cUser)
+    ]);
+    lHorarios = hor; lFechas = fec;
+    timeOffset = serverT - Date.now();
+
     const picksLimpios = {};
-    Object.keys(lPicks).forEach(k => {
-      const p = lPicks[k];
-      if (p && p.l != null && p.v != null) picksLimpios[k] = p;
+    TODOS.forEach(partido => {
+      const bloqueado = esPartidoBloqueado(partido);
+      const local = lPicks[partido.id];
+      const enDB  = dbPicks[partido.id];
+      if (bloqueado) {
+        // Partido ya empezado: solo guardar lo que ya estaba en la BD, ignorar cambios locales
+        if (enDB && enDB.l != null && enDB.v != null) picksLimpios[partido.id] = enDB;
+      } else {
+        // Partido abierto: guardar pick local si está completo
+        if (local && local.l != null && local.v != null) picksLimpios[partido.id] = local;
+      }
     });
+
     lPicks = picksLimpios;
     await dbSavePicks(cUser, lPicks);
     document.getElementById('empSaveMsg').textContent = '✓ Pronósticos guardados correctamente';
+    renderEmpleado(); // re-renderizar para mostrar bloqueos actualizados
   } catch(e) {
     document.getElementById('empSaveMsg').textContent = 'Error al guardar. Intentá de nuevo.';
   }
+  updEmpStats();
   btn.disabled = false; btn.textContent = 'Guardar pronósticos';
 }
 
