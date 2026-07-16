@@ -5,7 +5,7 @@ const SEMANAS = [
   { id:3, label:'Grupos · Fecha 3',  desde:'2026-06-23' },
   { id:4, label:'16avos y Octavos',  desde:'2026-06-28' },
   { id:5, label:'Cuartos y Semis',   desde:'2026-06-28' },
-  { id:6, label:'Final',              desde:'2026-06-28' },
+  { id:6, label:'3° Puesto y Final',  desde:'2026-06-28' },
 ];
 
 function semanaActual() {
@@ -83,6 +83,7 @@ const PE = [
   { id:'Q4', r:'Cuartos', loc:'G. O7', vis:'G. O8', f:'12 jul', semana:5 },
   { id:'S1', r:'Semifinal', loc:'G. Q1', vis:'G. Q2', f:'15 jul', semana:5 },
   { id:'S2', r:'Semifinal', loc:'G. Q3', vis:'G. Q4', f:'16 jul', semana:5 },
+  { id:'T1', r:'3° y 4° puesto', loc:'Francia', vis:'Inglaterra', f:'18 jul', semana:6 },
   { id:'F1', r:'Final', loc:'G. S1', vis:'G. S2', f:'19 jul', semana:6 },
 ];
 

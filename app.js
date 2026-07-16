@@ -356,7 +356,8 @@ function renderEmpleado() {
     html += `<div class="elim-wrap">`;
     rondas.forEach(r => {
       const ps = partidos.filter(p => p.r === r);
-      html += `<div class="elim-card"><div class="elim-title">${r}${r==='Final'?'':' de final'}</div>`;
+      const tituloRonda = (r === 'Final' || r === '3° y 4° puesto') ? r : r + ' de final';
+      html += `<div class="elim-card"><div class="elim-title">${tituloRonda}</div>`;
       ps.forEach(p => { html += matchRowEmp(p); });
       html += `</div>`;
     });
