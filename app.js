@@ -407,8 +407,9 @@ async function mostrarRankingEmp(btnEl) {
   const sc = users.map(u => ({
     n: u,
     picks: Object.keys(allP[u]).length,
-    pts: calcPtsUsuario(allP[u], res)
-  })).sort((a, b) => b.pts - a.pts || b.picks - a.picks);
+    pts: calcPtsUsuario(allP[u], res),
+    exactos: calcExactosUsuario(allP[u], res)
+  })).sort((a, b) => b.pts - a.pts || b.exactos - a.exactos);
 
   const mx = sc.length ? Math.max(...sc.map(s => s.pts), 1) : 1;
   const medals = ['🥇','🥈','🥉'];
@@ -485,6 +486,14 @@ function calcPtsUsuario(picks, res) {
   return total;
 }
 
+function calcExactosUsuario(picks, res) {
+  let total = 0;
+  Object.keys(res).forEach(mid => {
+    if (calcularPuntos(picks[mid], res[mid]) === 3) total++;
+  });
+  return total;
+}
+
 // Helper: muestra nombre del empleado para admin, o nombre formateado
 function nombreDisplay(legajo, paraAdmin) {
   const raw = EMPLEADOS[legajo];
@@ -523,8 +532,9 @@ async function renderResumen() {
   const sc = users.map(u => ({
     n: u,
     picks: Object.keys(allPicks[u]).length,
-    pts: calcPtsUsuario(allPicks[u], lRes)
-  })).sort((a, b) => b.pts - a.pts || b.picks - a.picks);
+    pts: calcPtsUsuario(allPicks[u], lRes),
+    exactos: calcExactosUsuario(allPicks[u], lRes)
+  })).sort((a, b) => b.pts - a.pts || b.exactos - a.exactos);
 
   const mx = sc.length ? Math.max(...sc.map(s => s.pts), 1) : 1;
   const medals = ['🥇','🥈','🥉'];
@@ -628,8 +638,9 @@ async function renderRanking() {
   const sc = users.map(u => ({
     n: u,
     picks: Object.keys(allPicks[u]).length,
-    pts: hayRes ? calcPtsUsuario(allPicks[u], lRes) : null
-  })).sort((a, b) => hayRes ? b.pts - a.pts : b.picks - a.picks);
+    pts: hayRes ? calcPtsUsuario(allPicks[u], lRes) : null,
+    exactos: hayRes ? calcExactosUsuario(allPicks[u], lRes) : 0
+  })).sort((a, b) => hayRes ? (b.pts - a.pts || b.exactos - a.exactos) : b.picks - a.picks);
   const mx = Math.max(...sc.map(s => hayRes ? s.pts : s.picks), 1);
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('aRanking').innerHTML = sc.map((u, i) => `
